@@ -228,14 +228,14 @@ class ELM:
         self.lmd = param['lmd']
         
 
-#if __name__=="__main__":
-    #(X,Y) = cPickle.load(open("iris.pkl","rb"))
+if __name__=="__main__":
+    (X,Y) = cPickle.load(open("iris.pkl","rb"))
     
     #D = cPickle.load(open("/home/akusoka1/Desktop/data2elm.pkl","rb"))
     #X = D['Xr']
     #Y = D['Yr']
-    #elm = ELM()
-    #elm.train_trop(X, Y, {'lin':1, 'tanh':50})
+    elm = ELM()
+    elm.train_trop(X, Y, {'lin':1, 'tanh':50})
     #(Yhat,e) = elm.run(D['Xs'], D['Ys'])
     #print float(np.sum(np.argmax(Yhat,1) == np.argmax(D['Ys'],1))) / D['Ys'].shape[0]
 
