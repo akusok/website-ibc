@@ -20,6 +20,32 @@ Indices and tables
 * :ref:`modindex`
 * :ref:`search`
 
+:mod:`mp` -- Multiprocessing shell
+
+.. automodule:: mp
+
+.. automodule:: mp.mp_manager
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+.. automodule:: mp.mp_master
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+.. automodule:: mp.mp_worker
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+.. automodule:: mp.mp_support
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+
 :mod:`elm` -- ELM package
 
 .. automodule:: elm

@@ -1,9 +1,0 @@
-
-from ibc_config import IBCConfig as cf
-
-
-
-print "IBC started"
-
-
-print "IBC finished"
