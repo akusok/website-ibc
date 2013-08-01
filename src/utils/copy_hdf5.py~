@@ -1,0 +1,110 @@
+from modules.hdf5_creator import create_empty_hdf5
+from tables import openFile
+
+
+def copy_websites(data, new, batch=1000):
+    """Copies websites from one database to another.
+    """
+    print "Copying websites"
+    db0 = openFile(data, "r")
+    db1 = openFile(new, "a")
+    i = 0
+    Ws0 = db0.root.Websites
+    Img0 = db0.root.Images
+    Reg0 = db0.root.Regions
+    Des0 = db0.root.Descriptors
+    Ws1 = db1.root.Websites
+    Img1 = db1.root.Images
+    Reg1 = db1.root.Regions
+    Des1 = db1.root.Descriptors
+
+    # websites
+    N = Ws0.nrows
+    for b in range(N/batch + 1):
+        nmin = b*batch
+        nmax = min((b+1)*batch, N)
+        rows = []
+        for tupl in Ws0.read(nmin, nmax):
+            row = list(tupl)
+            # format rows here
+            rows.append(row[:3] + [0, np.zeros((12,))] + row[3:])
+        Ws0.append(rows)
+        print  "ws: %d/%d" % (nmax, N)
+
+    Ws1.attrs.last_index = Ws0.attrs.last_index
+    Ws1.flush()
+
+    # images
+    N = Img0.nrows    
+    for b in (N/batch + 1):        
+        nmin = b*batch
+        nmax = min((b+1)*batch, N)
+        rows = []
+        for tupl in Ws0.read(nmin, nmax):
+            row = list(tupl)
+            # format rows here
+            rows.append(row[:3] + [0, np.zeros((12,))] + row[3:])
+        Ws0.append(rows)
+        print  "ws: %d/%d" % (nmax, N)
+        
+    nr_in_class = np.zeros((12), dtype=np.int64)
+    i = 0
+    for nI in imglist:
+        i += 1
+        row = list(self.Im.read(nI)[0])
+        last_img += 1
+        nr_in_class[row[1]] += 1
+        rowI = ([last_img] + row[1:3] + [last_reg+1] + row[4:6]
+                + [nr_in_class[row[1]]] + [np.zeros((12,))]
+                + [row[8], row[11], row[10], row[7]])
+        ImNew.append([rowI])
+        
+        # read and fix regions
+        last_reg_copy = last_reg
+        reg_first = row[3]
+        reg_count = row[4]
+        # check if there are regions to write
+        if reg_count == 0:
+            continue            
+        
+        rowsR = []
+        for tupl in self.Rg.read(reg_first, reg_first+reg_count):
+            row = list(tupl)
+            last_reg += 1
+            rowsR.append([last_reg] + row[1:3] + [last_img] + row[4:6] 
+                         + [np.zeros((10,), dtype=np.int64), np.zeros((12,))] 
+                         + row[6:])
+        RgNew.append(rowsR)
+        
+        # read and fix descriptors
+        if descr:
+            rowsD = []
+            for tupl in self.Ds.read(reg_first, reg_first+reg_count):
+                row = list(tupl)
+                last_reg_copy += 1
+                rowsD.append([last_reg_copy] + row[1:])                
+            DsNew.append(rowsD)  
+            
+        if i % 1000 == 0:
+            print "%d / %d images" % (i, len(imglist))
+            ImNew.flush()
+            RgNew.flush()
+            if descr:
+                DsNew.flush()
+            
+        
+    ImNew.attrs.last_index = last_img
+    ImNew.attrs.nr_in_class = nr_in_class
+    ImNew.flush()
+
+    RgNew.attrs.last_index = last_reg
+    RgNew.flush()
+
+    if descr:
+        DsNew.attrs.last_index = last_reg
+        DsNew.flush()
+        
+    db0.close()
+    db1.close()
+    print 'Done copying!'
+        

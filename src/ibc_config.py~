@@ -1,0 +1,87 @@
+"""Setup for an IBC experiment.
+
+Contains all configs from the application scheme.
+Experiments should differ by this setup only.
+Can create HDF5-based or fast online experiments.
+"""
+__author__ = "Anton Akusok"
+__license__ = "PSFL"
+__version__ = "0.0.1"
+
+
+class IBCConfig(object):
+    """Global parameters for WIC system.
+
+    Import this with some simpler name, like "conf".
+    """
+    
+    _raw_dir = "/data/toyset/raw_img/"
+    _ws_descr = "/data/toyset/wsdescr.txt"
+    
+    m02_hdf5 = "/data/toyset/toyset.h5"
+    
+    m03_img_dir = "/data/toyset/images/"
+    m03_min_size = 2400
+    m03_max_dim = 500
+    m03_jpeg_compr = 95
+    
+    m04_descr_extractor = -1
+    m04_img_data = ""
+    
+    m05_C_file = "/data/toyset/C.pkl"
+    
+    m06_nn_count = 10
+    
+    m08_train_size = 1
+    m08_val_size = 1
+    m08_neurons = 10
+    m08_elm_param = "/data/toyset/ELM.pkl"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    classes = {}  # table of classes in number notations
+    classes["Adult"]         = 0 
+    classes["Alcohol"]       = 1
+    classes["Cults"]         = 2
+    classes["Dating"]        = 3
+    classes["Drugs"]         = 4
+    classes["Gambling"]      = 5
+    classes["Hate"]          = 6
+    classes["Tobacco"]       = 7
+    classes["Violence"]      = 8
+    classes["Weapons"]       = 9
+    classes["Innocent"]      = 10
+    classes["Advertisement"] = 11
+
+    @staticmethod
+    def get_SIFT_command(img_file, temp_file):
+        max_reg = 10000  # limiting number of local features per one image
+        command = ('./colorDescriptor %s --detector harrislaplace '
+                   '--descriptor csift --output %s --outputFormat binary '
+                   '--keepLimited %d > /dev/null'
+                   % (img_file, temp_file, max_reg))
+        return command
+    
+    @staticmethod
+    def file_name(classN, nr_in_class, ext):
+        """Build standard image or region file name.
+
+        Allows to change the name pattern as desired (keep same arguments).
+        """
+        fname = "i%02d_%08d.%s" % (classN, nr_in_class, ext)
+        return fname
+
+
+
