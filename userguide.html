@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>User guide - borrowed :) &mdash; website-ibc 1.0 documentation</title>
+    <title>User guide &mdash; website-ibc 1.0 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -27,7 +27,7 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="author" title="About these documents" href="about.html" />
     <link rel="top" title="website-ibc 1.0 documentation" href="index.html" />
-    <link rel="next" title="Developer" href="developer.html" />
+    <link rel="next" title="Changelog" href="changelog.html" />
     <link rel="prev" title="Welcome to Website-IBC documentation!" href="index.html" /> 
   </head>
   <body>
@@ -41,7 +41,7 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="developer.html" title="Developer"
+          <a href="changelog.html" title="Changelog"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="index.html" title="Welcome to Website-IBC documentation!"
@@ -55,154 +55,32 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="user-guide-borrowed">
-<h1>User guide - borrowed :)<a class="headerlink" href="#user-guide-borrowed" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="demo">
-<h2>Demo<a class="headerlink" href="#demo" title="Permalink to this headline">¶</a></h2>
-<p><a class="reference external" href="http://almir-demo.domenkozar.com/">http://almir-demo.domenkozar.com/</a></p>
-</div>
-<div class="section" id="design-goals">
-<h2>Design goals<a class="headerlink" href="#design-goals" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li>each release is pinned to bacula-director specific major version</li>
-<li>simple is better than complicated</li>
-<li>inline documentation</li>
-<li>convention over configuration</li>
-<li>can act as view interface only (optional configuration functionality)</li>
-<li>plugin into existing bacula instance</li>
-<li>total control of bacula through existing bacula api</li>
-</ul>
-</div>
+  <div class="section" id="user-guide">
+<h1>User guide<a class="headerlink" href="#user-guide" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
-<p>Almir will install everything inside one directory, which must be empty. Application is meant to be self-contained,
-meaning no additional administrator is needed besides upgrading to a newer version. Almir should
-be always installed on a system together with bacula-director.</p>
+<p>Copy the code to your machine, then check <em>wibc_config.py</em> and change options accordingly. Add execution permission to <em>./sift/colorDescriptor</em> binary file.</p>
+<p>Software is written for Linux (Ubuntu 12.10) and was not tested for other OS.
+If porting to Windows is necessary, except apating the code, a Windows-specific binary file ./sift/colorDescriptors would be required.</p>
 <div class="section" id="prerequisities">
 <h3>Prerequisities<a class="headerlink" href="#prerequisities" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li>Bacula 5.x.x is installed and bacula-director is running</li>
-<li>installed python2.6 or python2.7 (compiled with sqlite support)</li>
-<li>using postgresql: make sure <cite>postgresql.conf</cite> includes a line <cite>client_encoding = utf8</cite></li>
+<li>Python 2.7 with Numpy and Scipy</li>
+<li>recent versions of Python&#8217;s Multiprocessing and Subprocess modules</li>
+<li><a class="reference external" href="http://www.hdfgroup.org/HDF5/">HDF5</a></li>
+<li><a class="reference external" href="http://pytables.github.io/">pyTables</a>, version &gt;= 3.0.0 <a class="reference external" href="http://sourceforge.net/projects/pytables/files/pytables/">here</a></li>
+<li><a class="reference external" href="http://www.pythonware.com/products/pil/">Python Imaging Library</a></li>
+<li><a class="reference external" href="https://pypi.python.org/pypi/Bottleneck">bottleneck</a></li>
 </ul>
 </div>
-<div class="section" id="installer-interactive">
-<h3>Installer (interactive)<a class="headerlink" href="#installer-interactive" title="Permalink to this headline">¶</a></h3>
-<p>Install prerequesities (Debian based):</p>
-<div class="highlight-bash"><div class="highlight"><pre><span class="nv">$ </span>sudo apt-get install git bacula-console python-distribute gcc python-dev wget
-</pre></div>
+<div class="section" id="manual">
+<h3>Manual<a class="headerlink" href="#manual" title="Permalink to this headline">¶</a></h3>
+<p>Configure your experiment using <em>wibc.py</em> and <em>wibc_config.py</em> in source folder. Check the necessary temporary folders, and create input files. For more information, refer to demo (coming soon) and <em>docs/dia/IBC2.pdf</em> flow diagram.</p>
 </div>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Installer will ask you few questions about SQL database and configuration for bconsole.</p>
+<div class="section" id="configuring-a-run">
+<h3>Configuring a run<a class="headerlink" href="#configuring-a-run" title="Permalink to this headline">¶</a></h3>
+<p>coming soon...</p>
 </div>
-<p>Install almir (recommended: under same user as bacula):</p>
-<div class="highlight-bash"><div class="highlight"><pre><span class="nv">$ </span><span class="nb">cd</span> /some/empty/directory/to/install/almir/
-<span class="nv">$ </span>sh -xec <span class="s2">&quot;$(wget -O - https://raw.github.com/iElectric/almir/master/install_production.sh)&quot;</span>
-</pre></div>
-</div>
-<p>You can continue with configuring <a class="reference internal" href="#nginx"><em>Configuring Nginx as a frontend</em></a>.</p>
-</div>
-<div class="section" id="manual-not-recommended">
-<h3>Manual (not recommended)<a class="headerlink" href="#manual-not-recommended" title="Permalink to this headline">¶</a></h3>
-<p>For security and *unix freaks, here is a step by step description what interactive install does behind the scene. Taking manual steps to install will ensure you are missing lovely time with your beloved one this weekend and replacing that with mild headache (specially if you are not familiar with python deployment quirks).</p>
-<p>Interactive install also handles upgrades transparently. Almir is developed with agile workflow with small incremental versions of new changes. You will have to dig in yourself how to upgrade environment upon a new release. Still stubborn? Let&#8217;s go!</p>
-<ul class="simple">
-<li>Download latests release from github (as tarball or git clone) from <em>latests</em> branch (install_production.sh takes care of that otherwise)</li>
-<li>unpack into empty directory</li>
-<li>Make sure you use python2.7 or python2.6, since other versions are not supported</li>
-<li>Populate <em>production.ini</em> file for daemon configuration, taken from <em>buildout.d/templates/production.ini.in</em> (<em>almir/scripts/configure_deploy.py</em> takes care of that interactively, then runs buildout to output configuration file from the template)</li>
-<li>Install all python dependencies from <em>setup.py</em> file, preferably within virtualenv (buildout takes care of that and pins them down to known workable set of versions, found in <em>buildout.d/versions.cfg</em>)</li>
-<li>Once you have installed dependencies (with <cite>python setup.py install</cite>) inside virtualenv or system python (REALLY not recommended), you should have <em>pserve</em> binary installed in bin/ directory</li>
-<li>run it like so: <cite>bin/pserve production.ini</cite></li>
-<li>make sure daemon runs at reboot, configure log rotation</li>
-</ul>
-<p>Happy? Let&#8217;s see until first upgrade.</p>
-</div>
-<div class="section" id="configuring-nginx-as-a-frontend">
-<span id="nginx"></span><h3>Configuring Nginx as a frontend<a class="headerlink" href="#configuring-nginx-as-a-frontend" title="Permalink to this headline">¶</a></h3>
-<p>It is wise to use frontend HTTP server and proxy HTTP requests to python web server. Following is an example for nginx, you could also use papache2 or lighthttpd.</p>
-<p>You would normally put this in /etc/nginx/sites-enabled/almir.mywebsite.com.conf</p>
-<div class="highlight-nginx"><div class="highlight"><pre><span class="k">server</span> <span class="p">{</span>
-    <span class="kn">listen</span>          <span class="mi">80</span><span class="p">;</span>
-    <span class="kn">server_name</span>     <span class="s">almir.mywebsite.com</span><span class="p">;</span>
-
-    <span class="kn">location</span> <span class="s">/</span> <span class="p">{</span>
-            <span class="kn">proxy_pass</span> <span class="s">http://localhost:2500</span><span class="p">;</span>
-
-            <span class="kn">proxy_set_header</span>  <span class="s">X-Real-IP</span>  <span class="nv">$remote_addr</span><span class="p">;</span>
-            <span class="kn">proxy_set_header</span>  <span class="s">X-Forwarded-For</span> <span class="nv">$proxy_add_x_forwarded_for</span><span class="p">;</span>
-            <span class="kn">proxy_set_header</span>  <span class="s">Host</span> <span class="nv">$http_host</span><span class="p">;</span>
-            <span class="kn">proxy_redirect</span> <span class="no">off</span><span class="p">;</span>
-
-            <span class="c1"># optional authentication - recommended</span>
-            <span class="kn">auth_basic</span> <span class="s">&quot;Restricted&quot;</span><span class="p">;</span>
-            <span class="c1"># how to correctly write htpasswd: http://wiki.nginx.org/HttpAuthBasicModule#auth_basic_user_file</span>
-            <span class="kn">auth_basic_user_file</span> <span class="s">/some/directory/to/install/almir/.htpasswd</span><span class="p">;</span>
-
-    <span class="p">}</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-<p>Then run:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span class="nv">$ </span>/etc/init.d/nginx reload
-</pre></div>
-</div>
-<p>Now try to access <a class="reference external" href="http://almir.mywebsite.com/">http://almir.mywebsite.com/</a> (if you have an error, follow instructions at <a class="reference internal" href="#reporting-bugs"><em>Reporting bugs</em></a>)</p>
-</div>
-<div class="section" id="configuring-apache2-as-a-frontend">
-<h3>Configuring Apache2 as a frontend<a class="headerlink" href="#configuring-apache2-as-a-frontend" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-apache"><div class="highlight"><pre><span class="nt">&lt;VirtualHost</span> <span class="s">*:80</span><span class="nt">&gt;</span>
-
-<span class="nb">ServerName</span> almir.mydomain.com
-<span class="nb">DocumentRoot</span> <span class="s2">&quot;/var/www/almir.mydomain.com&quot;</span>
-
-<span class="nb">ProxyPreserveHost</span> <span class="k">On</span>
-
-<span class="nt">&lt;Location</span> <span class="s">/</span><span class="nt">&gt;</span>
-<span class="nb">ProxyPass</span>  http://almir.mydomain.com:2500/
-<span class="nb">ProxyPassReverse</span> http://almir.mydomain.com:2500/
-<span class="nt">&lt;/Location&gt;</span>
-
-<span class="nb">ErrorLog</span> <span class="sx">/var/log/httpd/almir.mydomain.com-error.log</span>
-<span class="nb">CustomLog</span> <span class="sx">/var/log/httpd/almir.mydomain.com-access.log</span> combined
-
-<span class="nt">&lt;/VirtualHost&gt;</span>
-</pre></div>
-</div>
-<p>Do not forget to restrict access to almir, either by IP or by username/password.</p>
-</div>
-</div>
-<div class="section" id="upgrading-to-a-newer-release">
-<h2>Upgrading to a newer release<a class="headerlink" href="#upgrading-to-a-newer-release" title="Permalink to this headline">¶</a></h2>
-<p>Run:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span class="nv">$ </span><span class="nb">cd </span>almir_install_directory
-<span class="nv">$ </span>git pull
-<span class="nv">$ </span>python bootstrap.py
-<span class="nv">$ </span>bin/buildout
-<span class="nv">$ </span>bin/supervisorctl shutdown
-<span class="nv">$ </span>bin/supervisord
-</pre></div>
-</div>
-<p>You can also use that in crontab to auto upgrade on new releases, if you are crazy enough. You would probably extra check if upgrade is needed, something like running following and checking for any output:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span class="nv">$ </span>git log latests..origin/latests
-</pre></div>
-</div>
-</div>
-<div class="section" id="reporting-bugs">
-<span id="id1"></span><h2>Reporting bugs<a class="headerlink" href="#reporting-bugs" title="Permalink to this headline">¶</a></h2>
-<p>Check if an issue already exists at <a class="reference external" href="https://github.com/iElectric/almir/issues">https://github.com/iElectric/almir/issues</a>,
-otherwise add new one with following information:</p>
-<ul class="simple">
-<li>bacula-director version, operating system and browser version</li>
-<li>include screenshot if it provides any useful information</li>
-<li>pastebin (<a class="reference external" href="http://paste2.org">http://paste2.org</a>) output of $ cat ALMIR_ROOT/var/logs/almir-stderr*</li>
-<li>pastebin ALMIR_ROOT/buildout.cfg, but be careful to <em>remove any sensitive data</em></li>
-</ul>
-</div>
-<div class="section" id="filesystem-structure">
-<h2>Filesystem structure<a class="headerlink" href="#filesystem-structure" title="Permalink to this headline">¶</a></h2>
-<p>TODO ;)</p>
 </div>
 </div>
 
@@ -214,20 +92,13 @@ otherwise add new one with following information:</p>
         <div class="sphinxsidebarwrapper">
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">User guide - borrowed :)</a><ul>
-<li><a class="reference internal" href="#demo">Demo</a></li>
-<li><a class="reference internal" href="#design-goals">Design goals</a></li>
+<li><a class="reference internal" href="#">User guide</a><ul>
 <li><a class="reference internal" href="#installation">Installation</a><ul>
 <li><a class="reference internal" href="#prerequisities">Prerequisities</a></li>
-<li><a class="reference internal" href="#installer-interactive">Installer (interactive)</a></li>
-<li><a class="reference internal" href="#manual-not-recommended">Manual (not recommended)</a></li>
-<li><a class="reference internal" href="#configuring-nginx-as-a-frontend">Configuring Nginx as a frontend</a></li>
-<li><a class="reference internal" href="#configuring-apache2-as-a-frontend">Configuring Apache2 as a frontend</a></li>
+<li><a class="reference internal" href="#manual">Manual</a></li>
+<li><a class="reference internal" href="#configuring-a-run">Configuring a run</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#upgrading-to-a-newer-release">Upgrading to a newer release</a></li>
-<li><a class="reference internal" href="#reporting-bugs">Reporting bugs</a></li>
-<li><a class="reference internal" href="#filesystem-structure">Filesystem structure</a></li>
 </ul>
 </li>
 </ul>
@@ -236,8 +107,8 @@ otherwise add new one with following information:</p>
   <p class="topless"><a href="index.html"
                         title="previous chapter">Welcome to Website-IBC documentation!</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="developer.html"
-                        title="next chapter">Developer</a></p>
+  <p class="topless"><a href="changelog.html"
+                        title="next chapter">Changelog</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="_sources/userguide.txt"
@@ -270,7 +141,7 @@ otherwise add new one with following information:</p>
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="developer.html" title="Developer"
+          <a href="changelog.html" title="Changelog"
              >next</a> |</li>
         <li class="right" >
           <a href="index.html" title="Welcome to Website-IBC documentation!"

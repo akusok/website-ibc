@@ -33,7 +33,6 @@ Welcome to Website-IBC documentation!
    :maxdepth: 4
    
    userguide.rst
-   developer.rst
    changelog.rst
    api.rst
    elm.rst
