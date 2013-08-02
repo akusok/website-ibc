@@ -1,4 +1,5 @@
-"""Computes pairwise distances.
+# -*- coding: utf-8 -*-
+"""Computes pairwise distances, fast implementation.
 
 Currently, 'cdist()' function from scipy is the fastest, although it uses only
 one core. Using np.sum(np.power(dist,2),2) is 10x slower.
@@ -22,7 +23,7 @@ class PDist(object):
     """
 
     def __init__(self):
-        """Initialize object with constant centroids.
+        """Initialize class instance with constant centroids.
         """        
         if os.path.isfile(cf._C_file):
             self.C = cPickle.load(open(cf._C_file, "rb"))["C"]
@@ -32,7 +33,7 @@ class PDist(object):
 
 
     def get_1nn(self, D):
-        """Get indices of the first nearest neighbours.
+        """Indices and distances of the first nearest neighbour.
         
         Transferring back indices only is faster that
         the whole distance matrix.
@@ -48,10 +49,11 @@ class PDist(object):
 
 
     def get_knn(self, D):
-        """Get indices of the first nearest neighbours.
+        """Indexes and distances of *k* nearest neighbours.
         
-        Transferring back indices only is faster that
-        the whole distance matrix.
+        Uses *argpartsort* for fast determination of kNN.
+        
+        Currently used.
         """
         if self.C is None:
             return "Uninitialized centroids"

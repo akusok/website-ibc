@@ -2,6 +2,7 @@
 """Creates .h5 file, and fills websites in it.
 
 Created on Thu Jun 20 14:07:34 2013
+@author: akusoka1
 """
 
 from config.config_hdf5 import *

@@ -1,4 +1,5 @@
-"""Implementation of Optimal Pruned Extreme Learning Machine.
+# -*- coding: utf-8 -*-
+"""Implementation of Extreme Learning Machine (basic, OP)
 """
 
 from wibc_config import IBCConfig as cf
@@ -22,9 +23,11 @@ class ELM:
     def _project(self, X, neurons_dict):
         """Projects data to hidden layer H.
 
-        X: training data (no labels)
-        neurons_dict: keys are types of neurons, values are either an amount
-                      of such neurons, or a matrix W with bias column included
+        | Variables:
+        |  **X** -- training data (no labels)
+        |  **neurons_dict** -- keys are types of neurons, values are either
+                               an amount of such neurons, or a matrix W
+                               with bias column included
         """        
         self.n_sampl = X.shape[0]
         H = np.empty((self.n_sampl,0), dtype=np.float64)        
@@ -68,6 +71,8 @@ class ELM:
      
      
     def e_LOO(self, H, Y, lmd=0):
+        """Calculating LOO error.
+        """
         #  keeping number of samples low enough to fit into memory
         sampl_max = 1000
         if H.shape[0] > sampl_max:
@@ -93,6 +98,8 @@ class ELM:
      
 
     def train_basic(self, X, Y, neurons_dict):
+        """Train a basic ELM.
+        """
         self.n_feat = X.shape[1]
         self.H = self._project(X, neurons_dict)    
         if cf._show_progress:
@@ -105,6 +112,8 @@ class ELM:
 
         
     def train_op(self, X, Y, neurons_dict, kmax=-1, step=-1):
+        """Train an optimally pruned ELM.
+        """
         self.n_feat = X.shape[1]
         self.H = self._project(X, neurons_dict)    
         self.W1 = np.dot(np.linalg.pinv(self.H), Y)
@@ -146,6 +155,8 @@ class ELM:
     
 
     def _train_trop(self, lmd):
+        """Helper function for solving TROP-ELM minimization task.
+        """
         Y = self.temp_Y
         kmax = self.temp_kmax
         step = self.temp_step
@@ -162,6 +173,8 @@ class ELM:
 
 
     def train_trop(self, X, Y, neurons_dict, kmax=-1, step=-1):
+        """Train a Tikhonov regularized optimally pruned ELM.
+        """
         self.n_feat = X.shape[1]
         self.H = self._project(X, neurons_dict)    
         self.W1 = np.dot(np.linalg.pinv(self.H), Y)
@@ -208,6 +221,8 @@ class ELM:
         return True
         
     def run(self, X, Y=[]):
+        """Run trained ELM to get output.
+        """
         H = self._project(X, self.neurons_dict)
         Yhat = np.dot(H, self.W1)
         if Y != []:
@@ -216,6 +231,8 @@ class ELM:
         return Yhat
 
     def get_param(self):
+        """Get ELM parameters.
+        """
         param = {}
         param['W0'] = self.neurons_dict
         param['W1'] = self.W1
@@ -223,6 +240,8 @@ class ELM:
         return param
         
     def set_param(self, param):
+        """Set ELM parameters.
+        """
         self.neurons_dict = param['W0']
         self.W1 = param['W1']
         self.lmd = param['lmd']

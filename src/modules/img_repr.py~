@@ -43,9 +43,7 @@ class Repr(object):
 # working funcitons
 
 
-def get_repr(all_repr=False):  
-    """Actually gets representation, using correct method.
-    """        
+def get_repr(all_repr=False):          
     if cf._mode == "hdf5":
         _get_repr_hdf5(all_repr)
     else:

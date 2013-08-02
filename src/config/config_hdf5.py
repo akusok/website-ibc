@@ -1,14 +1,11 @@
+# -*- coding: utf-8 -*-
 """Setup file for the WIC project.
 
 DO NOT modify table descriptions unnecessarily! Changing them will require
 changing all filler files, and re-computing or re-structuring database files.
 Generally, additional fields in tables do not lead to noticable degradation
 in performance of increase of storage space.
-
 """
-__author__ = "Anton Akusok"
-__license__ = "PSFL"
-__version__ = "1.0.0"
 
 from wibc_config import IBCConfig as cf
 from tables import Int64Col, Float64Col, UInt8Col, Int8Col,\
@@ -27,20 +24,20 @@ class WebsitesRecord(IsDescription):
     and utilizing extremely fast sequential I/O with a sorter table (compared
     to common relational databases).
 
-    If needed, data from a table can be red directrly as a traditional array.
+    If needed, data from a table can be read directrly as a traditional array.
     Though table structure is fixed, their content depends on the exact method
     used, so several tables corresponding to particular method are stored
     together in a database file for convenience.
     
-    Attributes:
-        index: Unique index of a website.
-        classN: True class of a website.
-        img_count: Total number of images on that web page.
-        img_present: Number of database images in that website.
-        predict: Means and confidences for website classes predictions.
-        folder: Folder containing images from that website.
-        url: Web page of that website, if known.
-        class_text: Textual notation of the class
+    | Attributes:
+    |  **index** -- Unique index of a website.
+    |  **classN** -- True class of a website.
+    |  **img_count** -- Total number of images on that web page.
+    |  **img_present** -- Number of database images in that website.
+    |  **predict** -- Means and confidences for website classes predictions.
+    |  **folder** -- Folder containing images from that website.
+    |  **url** -- Web page of that website, if known.
+    |  **class_text** -- Textual notation of the class
     """
     index           = Int64Col(dflt=-1, pos=0)
     classN          = Int8Col( dflt=-1, pos=1)
@@ -54,23 +51,23 @@ class WebsitesRecord(IsDescription):
 class ImagesRecord(IsDescription):
     """Table type which describes images.
 
-    Attributes:
-        index: Unique image index.
-        classN: True class of image's website, true class for the image
+    | Attributes:
+    |  **index** -- Unique image index.
+    |  **classN** -- True class of image's website, true class for the image
             is unknown.
-        site_index: Index of website this image is taken from.
-        reg_first: Index of the first local image region in Regions table.
-        reg_count: Number of regions that image has.
-        nr_in_site: Number of image in website, can be used to restrict an
+    |  **site_index** -- Index of website this image is taken from.
+    |  **reg_first** -- Index of the first local image region in Regions table.
+    |  **reg_count** -- Number of regions that image has.
+    |  **nr_in_site** -- Number of image in website, can be used to restrict an
             amount of images processed from one website.
-        nr_in_class: Number of image in class, can be used to restrict an
+    |  **nr_in_class** -- Number of image in class, can be used to restrict an
             amount of images processed from each class.
-        predict:  Means and confidences for image classes predictions.
-        orig_sha1: Sha1 of an original image, used to find duplicates.
-        true_size: Dimensionality (x,y) of an original image.
-        new_size: Dimensionality (x,y) of a resized image.
-        true_name: File name of an original downloaded image.
-        file_name: File name of a preprocessed image.
+    |  **predict** --  Means and confidences for image classes predictions.
+    |  **orig_sha1** -- Sha1 of an original image, used to find duplicates.
+    |  **true_size** -- Dimensionality (x,y) of an original image.
+    |  **new_size** -- Dimensionality (x,y) of a resized image.
+    |  **true_name** -- File name of an original downloaded image.
+    |  **file_name** -- File name of a preprocessed image.
     """
     index           = Int64Col(dflt=-1, pos=0)
     classN          = Int8Col( dflt=-1, pos=1)
@@ -91,25 +88,25 @@ class ImagesRecord(IsDescription):
 class RegionsRecord(IsDescription):
     """Table type what describes image local samples.
 
-    Attributes:
-        index: Unique index of local sample. Samples from one image assume to
-            have consecutive indices, so they can be red sequentially.
-        img_class: "Class" of image (class of website that image belongs to).
+    | Attributes:
+    |  **index** -- Unique index of local sample. Samples from one image assume to
+           have consecutive indices, so they can be red sequentially.
+    |  **img_class** -- "Class" of image (class of website that image belongs to).
             Assumed to be the class of that local sample, although true
             dependence is very weak. Used for sample-based algorithms (finding
             best centroids for kNN, GRLVQ, etc.)
-        img_site: Website index of parental image. Allows website-based
+    |  **img_site** -- Website index of parental image. Allows website-based
             selection of samples.
-        img_index: Index of parental image. Allows image-based selection of
+    |  **img_index** -- Index of parental image. Allows image-based selection of
             samples, although use of Image's 'reg_first' and 'reg_nr'
             attributes is faster if they are available.
-        pyramid: Used in spatial pyramid approach.
-        center: Center coordinates (x,y) of that local sample.
-        radius: Radius of that local sample. Knowing center and radius,
+    |  **pyramid** -- Used in spatial pyramid approach.
+    |  **center** -- Center coordinates (x,y) of that local sample.
+    |  **radius** -- Radius of that local sample. Knowing center and radius,
             it is possible to read pixel representation of sample from image.
-        cornerness: Some value returned by sample detection algorithm.
+    |  **cornerness** -- Some value returned by sample detection algorithm.
             May be useful, don't take much space anyway.
-        predict:  Means and confidences for region classes predictions.
+    |  **predict** --  Means and confidences for region classes predictions.
                   Can also store nearest neighbour indices here.
 
     For practical purposes, all regions are detected and stored alongside images
@@ -131,13 +128,13 @@ class RegionsRecord(IsDescription):
 class DColorSIFTRecord(IsDescription):
     """Table type for storing local desriptors.
 
-    Attributes:
-        index: Same as index of the corresponding sample (region). Allows
+    | Attributes:
+    |  **index** -- Same as index of the corresponding sample (region). Allows
             read descriptors in the same manner as local samples, or find
             information about descriptor in Regions table.
-        classN: Assumed true class of corresponding region. Stored here for
+    |  **classN** -- Assumed true class of corresponding region. Stored here for
             faster access.
-        data: The descriptor itself. Current descriptor type is some color
+    |  **data** -- The descriptor itself. Current descriptor type is some color
             version of SIFT, with the dimensionality 3*128 = 384.
 
     Description table is put together with the corresponding Websites, Images

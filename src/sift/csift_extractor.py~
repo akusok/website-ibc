@@ -2,6 +2,7 @@
 """Processes an image and returns all data (properties + descriptors).
 
 If something goes wrong, returns string describing the error.
+@author: akusoka1
 """
 
 from wibc_config import IBCConfig as cf

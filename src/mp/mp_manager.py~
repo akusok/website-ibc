@@ -11,6 +11,8 @@ Script operation:
  - around 20 seconds to actually close the process.
 
 Created on Sat Apr  6 21:01:26 2013
+
+:Author: akusoka1
 """
 
 from wibc_config import IBCConfig as cf

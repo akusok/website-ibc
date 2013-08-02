@@ -16,7 +16,7 @@ import cProfile
 
 # existing class has connection, extending to add useful functions
 class QueueManager(BaseManager):
-    """Connects multiprocessing module to web server distribution system.
+    """Connects multiprocessing module to web server system.
     """
     pass
 

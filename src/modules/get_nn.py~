@@ -107,8 +107,6 @@ class Master(MPMaster):
         
 
 def calc_nn(kill_workers):
-    """Starts and stops mp master to get NN.
-    """
     master = Master(kill_workers)
     if master.tasks == []:
         print "No neighbours to calculate"

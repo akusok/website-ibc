@@ -50,8 +50,6 @@ class Master(MPMaster):
             
         
     def get_new_task(self):
-        """Combines a new task.
-        """
         # just yielding tasks here
         for idx, img_file in self.tasks:
             yield ("csift", img_file, idx)
@@ -127,8 +125,6 @@ class Master(MPMaster):
         
 
 def calc_descr(kill_workers):
-    """Actually starts and stops mp master.
-    """
     if cf._show_progress:
         print "Extracting descriptors..."
     master = Master(kill_workers)

@@ -3,14 +3,39 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to website-ibc's documentation!
+Welcome to Website-IBC documentation!
 =======================================
 
-Contents:
+:Author: Akusok Anton <akusok.a@gmail.com>
+:Source code: `github.com project <https://github.com/akusoka1/website-ibc>`_
+:Bug tracker: `github.com issues <https://github.com/akusoka1/website-ibc>`_
+:Generated: |today|
+:License: GPL v2
+:Version: |release|
+
+
+.. sidebar:: Features
+
+    - automatic analysis and classification of images
+    - scalable parallel execution
+    - fast binary cSIFT extractor
+    - fast and convenient HDF5 database
+    - keep all the data
+    - readable module structure
+
+
+.. topic:: Overview
+
+    .. include:: about.rst
+
 
 .. toctree::
-   :maxdepth: 1
-
+   :maxdepth: 4
+   
+   userguide.rst
+   changelog.rst
+   api.rst
+   elm.rst
 
 
 Indices and tables
@@ -20,39 +45,3 @@ Indices and tables
 * :ref:`modindex`
 * :ref:`search`
 
-:mod:`mp` -- Multiprocessing shell
-
-.. automodule:: mp
-
-.. automodule:: mp.mp_manager
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-.. automodule:: mp.mp_master
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-.. automodule:: mp.mp_worker
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-.. automodule:: mp.mp_support
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-
-
-:mod:`elm` -- ELM package
-
-.. automodule:: elm
-
-:mod:`elm.elm` -- Implementation of ELM
-
-.. automodule:: elm.elm
-    :members:
-    :undoc-members:
-    :show-inheritance:

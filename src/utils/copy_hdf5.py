@@ -5,6 +5,8 @@ import numpy as np
 
 def copy_hdf5(data, new, batch=100000):
     """Copies websites from one database to another.
+    
+    Transforms rows in process. Used to change or add columns.
     """
     print "Copying websites"
     db0 = openFile(data, "r")

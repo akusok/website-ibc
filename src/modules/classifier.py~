@@ -128,8 +128,6 @@ def save_res(Yh, I):
 
 
 def run_elm(save_txt):
-    """ELM classifier executor, uses other functions.
-    """
     X,Y,I = get_data()
     # initialize elm
     elm = ELM()

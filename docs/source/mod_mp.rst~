@@ -1,0 +1,35 @@
+:mod:`mp` -- Multiprocessing shell
+==================================
+
+
+Manager
+-------
+
+.. automodule:: mp.mp_manager
+    :members:
+    :undoc-members:
+    
+
+Master
+------
+
+.. automodule:: mp.mp_master
+    :members:
+    :special-members:
+
+
+Worker
+------
+
+.. automodule:: mp.mp_worker
+    :members:
+    :undoc-members:
+
+
+Support
+-------
+
+.. automodule:: mp.mp_support
+    :members:
+    :undoc-members:
+

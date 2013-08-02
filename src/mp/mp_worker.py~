@@ -25,8 +25,6 @@ class MPWorker(Process):
     """
 
     def __init__(self, wrk_idx):
-        """Connects to distribution queues on init.
-        """
         super(MPWorker, self).__init__()
         host_ip = open(cf._host, "r").read()
         

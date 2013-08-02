@@ -176,9 +176,7 @@ def _normalize_images_hdf5():
 
 
 def normalize_images():
-    """Actually processes an image.
-    
-    Chooses either single or batch version.
+    """Chooses either single or batch version.
     """
     if cf._mode == "hdf5":
         _normalize_images_hdf5()
