@@ -1,0 +1,280 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>modules.img_preprocessor &mdash; website-ibc 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="author" title="About these documents" href="../../about.html" />
+    <link rel="top" title="website-ibc 1.0 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">website-ibc 1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for modules.img_preprocessor</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;Processes an image and returns all data (properties + descriptors).</span>
+
+<span class="sd">If something goes wrong, returns string describing the error.</span>
+<span class="sd">@author: akusoka1</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">wibc_config</span> <span class="kn">import</span> <span class="n">IBCConfig</span> <span class="k">as</span> <span class="n">cf</span>
+<span class="kn">from</span> <span class="nn">tables</span> <span class="kn">import</span> <span class="n">openFile</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">Image</span>
+<span class="kn">import</span> <span class="nn">hashlib</span>
+<span class="kn">import</span> <span class="nn">cPickle</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+
+<div class="viewcode-block" id="_get_img_list"><a class="viewcode-back" href="../../mod_modules.html#modules.img_preprocessor._get_img_list">[docs]</a><span class="k">def</span> <span class="nf">_get_img_list</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Get a list of valid images, with old and new paths.</span>
+<span class="sd">    &quot;&quot;&quot;</span>    
+    <span class="c"># load websites description</span>
+    <span class="n">wsd</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">open</span><span class="p">(</span><span class="n">cf</span><span class="o">.</span><span class="n">_ws_descr</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">):</span>
+        <span class="c"># use [:-1] to remove &quot;newline&quot; character</span>
+        <span class="n">wsd</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&quot;;&quot;</span><span class="p">))</span>
+    <span class="n">imglist</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c"># checking that img_dir exists</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">cf</span><span class="o">.</span><span class="n">_img_dir</span><span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">cf</span><span class="o">.</span><span class="n">_img_dir</span><span class="p">)</span>
+
+    <span class="c"># creating list of old/new images, creating new unique website folders</span>
+    <span class="n">dirs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">_</span><span class="p">,</span><span class="n">dirs</span><span class="p">,</span><span class="n">_</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">cf</span><span class="o">.</span><span class="n">_img_dir</span><span class="p">):</span>
+        <span class="k">break</span>
+    <span class="n">Nws</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dirs</span><span class="p">)</span>  <span class="c"># current amount of websites</span>
+
+    <span class="k">for</span> <span class="n">ws</span> <span class="ow">in</span> <span class="n">wsd</span><span class="p">:</span>
+        <span class="c"># creating another website folder</span>
+        <span class="n">Nws</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">newdir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cf</span><span class="o">.</span><span class="n">_img_dir</span><span class="p">,</span> <span class="s">&quot;ws</span><span class="si">%06d</span><span class="s">&quot;</span><span class="o">%</span><span class="n">Nws</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">newdir</span><span class="p">)</span>
+
+        <span class="c"># iterating over existing files</span>
+        <span class="n">Nimg</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c"># image number in that website</span>
+        <span class="k">for</span> <span class="n">root</span><span class="p">,</span><span class="n">dirs</span><span class="p">,</span><span class="n">files</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cf</span><span class="o">.</span><span class="n">_raw_dir</span><span class="p">,</span> <span class="n">ws</span><span class="p">[</span><span class="mi">0</span><span class="p">])):</span>
+            <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+                <span class="n">img_raw</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+                
+                <span class="c"># check image size</span>
+                <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">img_raw</span><span class="p">)</span><span class="o">.</span><span class="n">st_size</span> <span class="o">&lt;</span> <span class="n">cf</span><span class="o">.</span><span class="n">_min_size</span><span class="p">:</span>
+                    <span class="k">print</span> <span class="s">&quot;Image </span><span class="si">%s</span><span class="s"> too small&quot;</span> <span class="o">%</span> <span class="n">img_raw</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&quot;/&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">2</span><span class="p">:]</span>
+                    <span class="k">continue</span>
+                
+                <span class="c"># check if an image can be opened (= is a valid image file)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">_</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">img_raw</span><span class="p">)</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s">&#39;RGB&#39;</span><span class="p">)</span>  <span class="c"># drop the result</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="k">print</span> <span class="s">&quot;Not a valid image: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">img_raw</span>
+                    <span class="k">continue</span>
+                
+                <span class="n">Nimg</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">img_new</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">newdir</span><span class="p">,</span> <span class="s">&quot;img</span><span class="si">%06d</span><span class="s">.jpg&quot;</span><span class="o">%</span><span class="n">Nimg</span><span class="p">)</span>
+                <span class="n">imglist</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">img_raw</span><span class="p">,</span> <span class="n">img_new</span><span class="p">,</span> <span class="n">ws</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">imglist</span>    
+
+</div>
+<div class="viewcode-block" id="_normalize_images"><a class="viewcode-back" href="../../mod_modules.html#modules.img_preprocessor._normalize_images">[docs]</a><span class="k">def</span> <span class="nf">_normalize_images</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Normalize images, no statistics kept.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">imglist</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">img_raw</span><span class="p">,</span> <span class="n">img_new</span><span class="p">,</span> <span class="n">ws</span> <span class="ow">in</span> <span class="n">_get_img_list</span><span class="p">():</span>
+        <span class="n">img_obj</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">img_raw</span><span class="p">)</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s">&#39;RGB&#39;</span><span class="p">)</span>
+
+        <span class="c"># check image dimensions, resize if needed</span>
+        <span class="n">maxs</span> <span class="o">=</span> <span class="n">cf</span><span class="o">.</span><span class="n">_max_dim</span>
+        <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="o">=</span> <span class="n">img_obj</span><span class="o">.</span><span class="n">size</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">x</span> <span class="o">&gt;</span> <span class="n">maxs</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">x</span> <span class="o">&gt;=</span> <span class="n">y</span><span class="p">):</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">y</span> <span class="o">*</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">maxs</span><span class="p">)</span> <span class="o">/</span> <span class="n">x</span><span class="p">))</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">maxs</span>
+            <span class="n">img_obj</span> <span class="o">=</span> <span class="n">img_obj</span><span class="o">.</span><span class="n">resize</span><span class="p">((</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">),</span> <span class="n">Image</span><span class="o">.</span><span class="n">ANTIALIAS</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">y</span> <span class="o">&gt;</span> <span class="n">maxs</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">maxs</span><span class="p">)</span> <span class="o">/</span> <span class="n">y</span><span class="p">))</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">maxs</span>
+            <span class="n">img_obj</span> <span class="o">=</span> <span class="n">img_obj</span><span class="o">.</span><span class="n">resize</span><span class="p">((</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">),</span> <span class="n">Image</span><span class="o">.</span><span class="n">ANTIALIAS</span><span class="p">)</span>        
+
+        <span class="c"># saving processed image</span>
+        <span class="n">img_obj</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">img_new</span><span class="p">,</span> <span class="s">&#39;JPEG&#39;</span><span class="p">,</span> <span class="n">quality</span><span class="o">=</span><span class="n">cf</span><span class="o">.</span><span class="n">_jpeg_quality</span><span class="p">)</span>
+        <span class="n">imglist</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">img_new</span><span class="p">,</span> <span class="n">ws</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+    <span class="c"># saving image-website mapping</span>
+    <span class="n">cPickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">imglist</span><span class="p">,</span> <span class="nb">open</span><span class="p">(</span><span class="n">cf</span><span class="o">.</span><span class="n">_img_data</span><span class="p">,</span> <span class="s">&quot;wb&quot;</span><span class="p">),</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        
+        </div>
+<div class="viewcode-block" id="_normalize_images_hdf5"><a class="viewcode-back" href="../../mod_modules.html#modules.img_preprocessor._normalize_images_hdf5">[docs]</a><span class="k">def</span> <span class="nf">_normalize_images_hdf5</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Normalize images, write image records with statistics to HDF5 file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>    
+    <span class="n">imglist</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c"># new list with all image attributes, to fill HDF5</span>
+    <span class="k">for</span> <span class="n">img_raw</span><span class="p">,</span> <span class="n">img_new</span><span class="p">,</span> <span class="n">ws</span> <span class="ow">in</span> <span class="n">_get_img_list</span><span class="p">():</span>
+        <span class="n">img_obj</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">img_raw</span><span class="p">)</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s">&#39;RGB&#39;</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{}</span> <span class="c"># all image information</span>
+
+        <span class="n">data</span><span class="p">[</span><span class="s">&quot;true_size&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">img_obj</span><span class="o">.</span><span class="n">size</span>
+        <span class="n">data</span><span class="p">[</span><span class="s">&quot;true_name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">img_raw</span>
+        <span class="n">data</span><span class="p">[</span><span class="s">&quot;orig_sha1&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha1</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">img_raw</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">())</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+        <span class="n">data</span><span class="p">[</span><span class="s">&quot;classN&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">ws</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+        <span class="n">data</span><span class="p">[</span><span class="s">&quot;ws_index&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ws</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>  <span class="c"># just an URL here, find website index later</span>
+        
+        <span class="c"># check image dimensions, resize if needed</span>
+        <span class="n">maxs</span> <span class="o">=</span> <span class="n">cf</span><span class="o">.</span><span class="n">_max_dim</span>
+        <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="o">=</span> <span class="n">img_obj</span><span class="o">.</span><span class="n">size</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">x</span> <span class="o">&gt;</span> <span class="n">maxs</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">x</span> <span class="o">&gt;=</span> <span class="n">y</span><span class="p">):</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">y</span> <span class="o">*</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">maxs</span><span class="p">)</span> <span class="o">/</span> <span class="n">x</span><span class="p">))</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">maxs</span>
+            <span class="n">img_obj</span> <span class="o">=</span> <span class="n">img_obj</span><span class="o">.</span><span class="n">resize</span><span class="p">((</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">),</span> <span class="n">Image</span><span class="o">.</span><span class="n">ANTIALIAS</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">y</span> <span class="o">&gt;</span> <span class="n">maxs</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">maxs</span><span class="p">)</span> <span class="o">/</span> <span class="n">y</span><span class="p">))</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">maxs</span>
+            <span class="n">img_obj</span> <span class="o">=</span> <span class="n">img_obj</span><span class="o">.</span><span class="n">resize</span><span class="p">((</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">),</span> <span class="n">Image</span><span class="o">.</span><span class="n">ANTIALIAS</span><span class="p">)</span>        
+        <span class="n">data</span><span class="p">[</span><span class="s">&quot;new_size&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">img_obj</span><span class="o">.</span><span class="n">size</span>
+
+        <span class="c"># saving processed image</span>
+        <span class="n">data</span><span class="p">[</span><span class="s">&quot;file_name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">img_new</span>
+        <span class="n">img_obj</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">img_new</span><span class="p">,</span> <span class="s">&#39;JPEG&#39;</span><span class="p">,</span> <span class="n">quality</span><span class="o">=</span><span class="n">cf</span><span class="o">.</span><span class="n">_jpeg_quality</span><span class="p">)</span>
+        
+        <span class="c"># adding image information</span>
+        <span class="n">imglist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="c"># finding website indices</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="n">openFile</span><span class="p">(</span><span class="n">cf</span><span class="o">.</span><span class="n">_hdf5</span><span class="p">,</span> <span class="s">&quot;a&quot;</span><span class="p">)</span>
+    <span class="n">Websites</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">Websites</span>
+    <span class="n">nr_in_site</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">imglist</span><span class="p">:</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&quot;ws_index&quot;</span><span class="p">]</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">Websites</span><span class="o">.</span><span class="n">readWhere</span><span class="p">(</span><span class="s">&#39;url==&quot;</span><span class="si">%s</span><span class="s">&quot;&#39;</span><span class="o">%</span><span class="n">url</span><span class="p">,</span> <span class="n">field</span><span class="o">=</span><span class="s">&quot;index&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">data</span><span class="p">[</span><span class="s">&quot;ws_index&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">idx</span>
+        <span class="c"># calculating Images.nr_in_site, and Websites.img_present</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">nr_in_site</span><span class="p">:</span>  <span class="c"># add another website      :</span>
+            <span class="n">nr_in_site</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">data</span><span class="p">[</span><span class="s">&quot;nr_in_site&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">nr_in_site</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">data</span><span class="p">[</span><span class="s">&quot;nr_in_site&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">nr_in_site</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+    
+    <span class="c"># writing image table records</span>
+    <span class="n">Images</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">Images</span>
+    <span class="n">img_last</span> <span class="o">=</span> <span class="n">Images</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">last_index</span>
+    <span class="n">nr_in_class</span> <span class="o">=</span> <span class="n">Images</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">nr_in_class</span>
+
+    <span class="k">for</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">imglist</span><span class="p">:</span>
+        <span class="c"># adding image</span>
+        <span class="n">row</span> <span class="o">=</span> <span class="n">Images</span><span class="o">.</span><span class="n">row</span>
+        <span class="n">row</span><span class="p">[</span><span class="s">&quot;index&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">img_last</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">classN</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&quot;classN&quot;</span><span class="p">]</span>
+        <span class="n">row</span><span class="p">[</span><span class="s">&quot;classN&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">classN</span>
+        <span class="n">row</span><span class="p">[</span><span class="s">&quot;site_index&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&quot;ws_index&quot;</span><span class="p">]</span>
+        <span class="n">row</span><span class="p">[</span><span class="s">&quot;nr_in_class&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">nr_in_class</span><span class="p">[</span><span class="n">classN</span><span class="p">]</span>
+        <span class="n">row</span><span class="p">[</span><span class="s">&quot;nr_in_site&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&quot;nr_in_site&quot;</span><span class="p">]</span>
+        <span class="n">row</span><span class="p">[</span><span class="s">&quot;orig_sha1&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&quot;orig_sha1&quot;</span><span class="p">]</span>
+        <span class="n">row</span><span class="p">[</span><span class="s">&quot;true_size&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&quot;true_size&quot;</span><span class="p">]</span>
+        <span class="n">row</span><span class="p">[</span><span class="s">&quot;new_size&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&quot;new_size&quot;</span><span class="p">]</span>
+        <span class="n">row</span><span class="p">[</span><span class="s">&quot;true_name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&quot;true_name&quot;</span><span class="p">]</span>
+        <span class="n">row</span><span class="p">[</span><span class="s">&quot;file_name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&quot;file_name&quot;</span><span class="p">]</span>
+        <span class="n">row</span><span class="o">.</span><span class="n">append</span><span class="p">()</span>                
+        <span class="n">img_last</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">nr_in_class</span><span class="p">[</span><span class="n">classN</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+    
+    <span class="c"># writing Websites.img_present attribute of websites</span>
+    <span class="c"># +1 because nr_in_site starts from zero</span>
+    <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">nr_in_site</span><span class="p">:</span>
+        <span class="n">Websites</span><span class="o">.</span><span class="n">modify_column</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">idx</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">colname</span><span class="o">=</span><span class="s">&quot;img_present&quot;</span><span class="p">,</span>
+                               <span class="n">column</span><span class="o">=</span><span class="n">nr_in_site</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">Images</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">last_index</span> <span class="o">=</span> <span class="n">img_last</span>
+    <span class="n">Images</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">nr_in_class</span> <span class="o">=</span> <span class="n">nr_in_class</span>
+    <span class="n">Images</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+    <span class="n">Websites</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="normalize_images"><a class="viewcode-back" href="../../mod_modules.html#modules.img_preprocessor.normalize_images">[docs]</a><span class="k">def</span> <span class="nf">normalize_images</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Chooses either single or batch version.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">cf</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s">&quot;hdf5&quot;</span><span class="p">:</span>
+        <span class="n">_normalize_images_hdf5</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">_normalize_images</span><span class="p">()</span>
+</pre></div></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">website-ibc 1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Anton Akusok.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

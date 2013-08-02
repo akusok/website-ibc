@@ -1,0 +1,281 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>config.config_hdf5 &mdash; website-ibc 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="author" title="About these documents" href="../../about.html" />
+    <link rel="top" title="website-ibc 1.0 documentation" href="../../index.html" />
+    <link rel="up" title="config" href="../config.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">website-ibc 1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../config.html" accesskey="U">config</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for config.config_hdf5</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;Setup file for the WIC project.</span>
+
+<span class="sd">DO NOT modify table descriptions unnecessarily! Changing them will require</span>
+<span class="sd">changing all filler files, and re-computing or re-structuring database files.</span>
+<span class="sd">Generally, additional fields in tables do not lead to noticable degradation</span>
+<span class="sd">in performance of increase of storage space.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">wibc_config</span> <span class="kn">import</span> <span class="n">IBCConfig</span> <span class="k">as</span> <span class="n">cf</span>
+<span class="kn">from</span> <span class="nn">tables</span> <span class="kn">import</span> <span class="n">Int64Col</span><span class="p">,</span> <span class="n">Float64Col</span><span class="p">,</span> <span class="n">UInt8Col</span><span class="p">,</span> <span class="n">Int8Col</span><span class="p">,</span>\
+                   <span class="n">StringCol</span><span class="p">,</span> <span class="n">IsDescription</span><span class="p">,</span> <span class="n">openFile</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+
+<div class="viewcode-block" id="WebsitesRecord"><a class="viewcode-back" href="../../mod_config.html#config.config_hdf5.WebsitesRecord">[docs]</a><span class="k">class</span> <span class="nc">WebsitesRecord</span><span class="p">(</span><span class="n">IsDescription</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Table type which describes websites.</span>
+
+<span class="sd">    This and following table types are used to create database tables</span>
+<span class="sd">    with &#39;pyTables&#39; (alias &#39;tables&#39;) library. pyTables provides a tabular</span>
+<span class="sd">    extension to HDF5 storage mechanism, which normally uses array data.</span>
+<span class="sd">    Tables allow storing and searching attributes in tables efficiently.</span>
+<span class="sd">    Also, tables are useful for storing variable amounts of local features</span>
+<span class="sd">    per image - using attributes as pointers to the image owning each feature,</span>
+<span class="sd">    and utilizing extremely fast sequential I/O with a sorter table (compared</span>
+<span class="sd">    to common relational databases).</span>
+
+<span class="sd">    If needed, data from a table can be red directrly as a traditional array.</span>
+<span class="sd">    Though table structure is fixed, their content depends on the exact method</span>
+<span class="sd">    used, so several tables corresponding to particular method are stored</span>
+<span class="sd">    together in a database file for convenience.</span>
+<span class="sd">    </span>
+<span class="sd">    Attributes:</span>
+<span class="sd">        index: Unique index of a website.</span>
+<span class="sd">        classN: True class of a website.</span>
+<span class="sd">        img_count: Total number of images on that web page.</span>
+<span class="sd">        img_present: Number of database images in that website.</span>
+<span class="sd">        predict: Means and confidences for website classes predictions.</span>
+<span class="sd">        folder: Folder containing images from that website.</span>
+<span class="sd">        url: Web page of that website, if known.</span>
+<span class="sd">        class_text: Textual notation of the class</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">index</span>           <span class="o">=</span> <span class="n">Int64Col</span><span class="p">(</span><span class="n">dflt</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">classN</span>          <span class="o">=</span> <span class="n">Int8Col</span><span class="p">(</span> <span class="n">dflt</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">img_count</span>       <span class="o">=</span> <span class="n">Int64Col</span><span class="p">(</span><span class="n">dflt</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">img_present</span>     <span class="o">=</span> <span class="n">Int64Col</span><span class="p">(</span><span class="n">dflt</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+    <span class="n">predict</span>         <span class="o">=</span> <span class="n">Float64Col</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">cf</span><span class="o">.</span><span class="n">_maxc</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">dflt</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+    <span class="n">folder</span>          <span class="o">=</span> <span class="n">StringCol</span><span class="p">(</span><span class="n">itemsize</span><span class="o">=</span><span class="mi">1024</span><span class="p">)</span>
+    <span class="n">url</span>             <span class="o">=</span> <span class="n">StringCol</span><span class="p">(</span><span class="n">itemsize</span><span class="o">=</span><span class="mi">1024</span><span class="p">)</span>
+    <span class="n">class_text</span>      <span class="o">=</span> <span class="n">StringCol</span><span class="p">(</span><span class="n">itemsize</span><span class="o">=</span><span class="mi">1024</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="ImagesRecord"><a class="viewcode-back" href="../../mod_config.html#config.config_hdf5.ImagesRecord">[docs]</a><span class="k">class</span> <span class="nc">ImagesRecord</span><span class="p">(</span><span class="n">IsDescription</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Table type which describes images.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        index: Unique image index.</span>
+<span class="sd">        classN: True class of image&#39;s website, true class for the image</span>
+<span class="sd">            is unknown.</span>
+<span class="sd">        site_index: Index of website this image is taken from.</span>
+<span class="sd">        reg_first: Index of the first local image region in Regions table.</span>
+<span class="sd">        reg_count: Number of regions that image has.</span>
+<span class="sd">        nr_in_site: Number of image in website, can be used to restrict an</span>
+<span class="sd">            amount of images processed from one website.</span>
+<span class="sd">        nr_in_class: Number of image in class, can be used to restrict an</span>
+<span class="sd">            amount of images processed from each class.</span>
+<span class="sd">        predict:  Means and confidences for image classes predictions.</span>
+<span class="sd">        orig_sha1: Sha1 of an original image, used to find duplicates.</span>
+<span class="sd">        true_size: Dimensionality (x,y) of an original image.</span>
+<span class="sd">        new_size: Dimensionality (x,y) of a resized image.</span>
+<span class="sd">        true_name: File name of an original downloaded image.</span>
+<span class="sd">        file_name: File name of a preprocessed image.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">index</span>           <span class="o">=</span> <span class="n">Int64Col</span><span class="p">(</span><span class="n">dflt</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">classN</span>          <span class="o">=</span> <span class="n">Int8Col</span><span class="p">(</span> <span class="n">dflt</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">site_index</span>      <span class="o">=</span> <span class="n">Int64Col</span><span class="p">(</span><span class="n">dflt</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">reg_first</span>       <span class="o">=</span> <span class="n">Int64Col</span><span class="p">(</span><span class="n">dflt</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+    <span class="n">reg_count</span>       <span class="o">=</span> <span class="n">Int64Col</span><span class="p">(</span><span class="n">dflt</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+    <span class="n">nr_in_site</span>      <span class="o">=</span> <span class="n">Int64Col</span><span class="p">(</span><span class="n">dflt</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+    <span class="n">nr_in_class</span>     <span class="o">=</span> <span class="n">Int64Col</span><span class="p">(</span><span class="n">dflt</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+    <span class="n">img_repr</span>        <span class="o">=</span> <span class="n">Float64Col</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">cf</span><span class="o">.</span><span class="n">_maxc</span><span class="p">),</span> <span class="n">dflt</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">predict</span>         <span class="o">=</span> <span class="n">Float64Col</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">cf</span><span class="o">.</span><span class="n">_maxc</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">dflt</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span>
+    <span class="n">orig_sha1</span>       <span class="o">=</span> <span class="n">StringCol</span><span class="p">(</span><span class="n">itemsize</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span> <span class="n">dflt</span><span class="o">=</span><span class="s">&quot;&quot;</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>  <span class="c"># for finding duplicates</span>
+    <span class="n">true_size</span>       <span class="o">=</span> <span class="n">Int64Col</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="n">dflt</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="mi">9</span><span class="p">)</span>  <span class="c"># (x,y) before resize</span>
+    <span class="n">new_size</span>        <span class="o">=</span> <span class="n">Int64Col</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="n">dflt</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="mi">9</span><span class="p">)</span>  <span class="c"># (x,y) after resize</span>
+    <span class="n">true_name</span>       <span class="o">=</span> <span class="n">StringCol</span><span class="p">(</span><span class="n">itemsize</span><span class="o">=</span><span class="mi">255</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>  <span class="c"># name of a downloaded file</span>
+    <span class="n">file_name</span>       <span class="o">=</span> <span class="n">StringCol</span><span class="p">(</span><span class="n">itemsize</span><span class="o">=</span><span class="mi">255</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="mi">11</span><span class="p">)</span>  <span class="c"># name of a preprocessed image</span>
+    
+</div>
+<div class="viewcode-block" id="RegionsRecord"><a class="viewcode-back" href="../../mod_config.html#config.config_hdf5.RegionsRecord">[docs]</a><span class="k">class</span> <span class="nc">RegionsRecord</span><span class="p">(</span><span class="n">IsDescription</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Table type what describes image local samples.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        index: Unique index of local sample. Samples from one image assume to</span>
+<span class="sd">            have consecutive indices, so they can be red sequentially.</span>
+<span class="sd">        img_class: &quot;Class&quot; of image (class of website that image belongs to).</span>
+<span class="sd">            Assumed to be the class of that local sample, although true</span>
+<span class="sd">            dependence is very weak. Used for sample-based algorithms (finding</span>
+<span class="sd">            best centroids for kNN, GRLVQ, etc.)</span>
+<span class="sd">        img_site: Website index of parental image. Allows website-based</span>
+<span class="sd">            selection of samples.</span>
+<span class="sd">        img_index: Index of parental image. Allows image-based selection of</span>
+<span class="sd">            samples, although use of Image&#39;s &#39;reg_first&#39; and &#39;reg_nr&#39;</span>
+<span class="sd">            attributes is faster if they are available.</span>
+<span class="sd">        pyramid: Used in spatial pyramid approach.</span>
+<span class="sd">        center: Center coordinates (x,y) of that local sample.</span>
+<span class="sd">        radius: Radius of that local sample. Knowing center and radius,</span>
+<span class="sd">            it is possible to read pixel representation of sample from image.</span>
+<span class="sd">        cornerness: Some value returned by sample detection algorithm.</span>
+<span class="sd">            May be useful, don&#39;t take much space anyway.</span>
+<span class="sd">        predict:  Means and confidences for region classes predictions.</span>
+<span class="sd">                  Can also store nearest neighbour indices here.</span>
+
+<span class="sd">    For practical purposes, all regions are detected and stored alongside images</span>
+<span class="sd">    in a database. Descriptors of images are stored in a separate table, but </span>
+<span class="sd">    in cells with corresponding addresses (row indices).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">index</span>           <span class="o">=</span> <span class="n">Int64Col</span><span class="p">(</span><span class="n">dflt</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">img_class</span>       <span class="o">=</span> <span class="n">Int8Col</span><span class="p">(</span> <span class="n">dflt</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">img_site</span>        <span class="o">=</span> <span class="n">Int64Col</span><span class="p">(</span><span class="n">dflt</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">img_index</span>       <span class="o">=</span> <span class="n">Int64Col</span><span class="p">(</span><span class="n">dflt</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+    <span class="n">pyramid</span>         <span class="o">=</span> <span class="n">Int8Col</span><span class="p">(</span> <span class="n">dflt</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">center</span>          <span class="o">=</span> <span class="n">Int64Col</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="n">dflt</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">radius</span>          <span class="o">=</span> <span class="n">Int64Col</span><span class="p">(</span><span class="n">dflt</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span> 
+    <span class="n">cornerness</span>      <span class="o">=</span> <span class="n">Float64Col</span><span class="p">(</span><span class="n">dflt</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">predict</span>         <span class="o">=</span> <span class="n">Float64Col</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">cf</span><span class="o">.</span><span class="n">_maxc</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">dflt</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">neighbours</span>      <span class="o">=</span> <span class="n">Float64Col</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">cf</span><span class="o">.</span><span class="n">_nn_count</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">dflt</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="DColorSIFTRecord"><a class="viewcode-back" href="../../mod_config.html#config.config_hdf5.DColorSIFTRecord">[docs]</a><span class="k">class</span> <span class="nc">DColorSIFTRecord</span><span class="p">(</span><span class="n">IsDescription</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Table type for storing local desriptors.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        index: Same as index of the corresponding sample (region). Allows</span>
+<span class="sd">            read descriptors in the same manner as local samples, or find</span>
+<span class="sd">            information about descriptor in Regions table.</span>
+<span class="sd">        classN: Assumed true class of corresponding region. Stored here for</span>
+<span class="sd">            faster access.</span>
+<span class="sd">        data: The descriptor itself. Current descriptor type is some color</span>
+<span class="sd">            version of SIFT, with the dimensionality 3*128 = 384.</span>
+
+<span class="sd">    Description table is put together with the corresponding Websites, Images</span>
+<span class="sd">    and Regions table. Database file name should point to exact methods used,</span>
+<span class="sd">    for instance &#39;csift_ds.h5&#39; for C-SIFT descriptors of dense sampled</span>
+<span class="sd">    features.</span>
+
+<span class="sd">    Compression x4 achieved using UInt8Col instead of IntCol. Further</span>
+<span class="sd">    compression possible, but even the fastest one slows down I/O 10 times,</span>
+<span class="sd">    because reads from here require index searching to get descriptors of</span>
+<span class="sd">    a specific image, and searching a compressed data is bad idea.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">index</span>           <span class="o">=</span> <span class="n">Int64Col</span><span class="p">(</span><span class="n">dflt</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">classN</span>          <span class="o">=</span> <span class="n">Int8Col</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">data</span>            <span class="o">=</span> <span class="n">UInt8Col</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">384</span><span class="p">))</span>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        </div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">website-ibc 1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../config.html" >config</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Anton Akusok.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

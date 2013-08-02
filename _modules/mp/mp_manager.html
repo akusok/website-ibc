@@ -1,0 +1,144 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>mp.mp_manager &mdash; website-ibc 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="author" title="About these documents" href="../../about.html" />
+    <link rel="top" title="website-ibc 1.0 documentation" href="../../index.html" />
+    <link rel="up" title="mp" href="../mp.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">website-ibc 1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../mp.html" accesskey="U">mp</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for mp.mp_manager</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;Starts the queue server and runs forever.</span>
+<span class="sd">A port will be busy as long as the server is running.</span>
+
+<span class="sd">Manual operation: just start the script, manually close when finished.</span>
+
+<span class="sd">Script operation: start with p=subprocess.Popen(...), call p.poll() to wait for</span>
+<span class="sd">                  an actual start, terminate with p.terminate() which takes</span>
+<span class="sd">                  around 20 seconds to actually close the process.</span>
+
+<span class="sd">Created on Sat Apr  6 21:01:26 2013</span>
+
+<span class="sd">@author: akusoka1</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">wibc_config</span> <span class="kn">import</span> <span class="n">IBCConfig</span> <span class="k">as</span> <span class="n">cf</span>
+<span class="kn">import</span> <span class="nn">socket</span>
+<span class="kn">from</span> <span class="nn">multiprocessing.managers</span> <span class="kn">import</span> <span class="n">SyncManager</span>
+<span class="kn">import</span> <span class="nn">Queue</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+
+<div class="viewcode-block" id="CreateDoubleQueueServer"><a class="viewcode-back" href="../../mod_mp.html#mp.mp_manager.CreateDoubleQueueServer">[docs]</a><span class="k">def</span> <span class="nf">CreateDoubleQueueServer</span><span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">queue_size</span><span class="p">):</span>
+    
+    <span class="n">qtask</span> <span class="o">=</span> <span class="n">Queue</span><span class="o">.</span><span class="n">Queue</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="n">queue_size</span><span class="p">)</span>
+    <span class="n">qresult</span> <span class="o">=</span> <span class="n">Queue</span><span class="o">.</span><span class="n">Queue</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="n">queue_size</span><span class="p">)</span>
+    
+    <span class="k">class</span> <span class="nc">QueueManager</span><span class="p">(</span><span class="n">SyncManager</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="n">QueueManager</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s">&#39;qtask&#39;</span><span class="p">,</span> <span class="nb">callable</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span><span class="n">qtask</span><span class="p">)</span>
+    <span class="n">QueueManager</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s">&#39;qresult&#39;</span><span class="p">,</span> <span class="nb">callable</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span><span class="n">qresult</span><span class="p">)</span>
+    <span class="n">manager</span> <span class="o">=</span> <span class="n">QueueManager</span><span class="p">(</span><span class="n">address</span><span class="o">=</span><span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">),</span> <span class="n">authkey</span><span class="o">=</span><span class="n">key</span><span class="p">)</span>
+    <span class="c">#manager.start()  # actually start the server</span>
+    <span class="n">manager</span><span class="o">.</span><span class="n">get_server</span><span class="p">()</span><span class="o">.</span><span class="n">serve_forever</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">manager</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;__main__&quot;</span><span class="p">:</span>
+
+    <span class="n">host_file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">cf</span><span class="o">.</span><span class="n">_host</span><span class="p">,</span> <span class="s">&quot;w&quot;</span><span class="p">)</span>
+    <span class="n">host_ip</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">gethostbyname</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">gethostname</span><span class="p">())</span>
+    <span class="n">host_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">host_ip</span><span class="p">)</span>
+    <span class="n">host_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="n">mng</span> <span class="o">=</span> <span class="n">CreateDoubleQueueServer</span><span class="p">(</span><span class="n">host_ip</span><span class="p">,</span> <span class="n">cf</span><span class="o">.</span><span class="n">_port</span><span class="p">,</span> <span class="n">cf</span><span class="o">.</span><span class="n">_key</span><span class="p">,</span> <span class="n">cf</span><span class="o">.</span><span class="n">_qsize</span><span class="p">)</span>
+    <span class="k">print</span> <span class="s">&quot;Started queue server at </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">host_ip</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">website-ibc 1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../mp.html" >mp</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Anton Akusok.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

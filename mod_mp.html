@@ -1,0 +1,275 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>mp – Multiprocessing shell &mdash; website-ibc 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="author" title="About these documents" href="about.html" />
+    <link rel="top" title="website-ibc 1.0 documentation" href="index.html" />
+    <link rel="up" title="API" href="api.html" />
+    <link rel="prev" title="API" href="api.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api.html" title="API"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">website-ibc 1.0 documentation</a> &raquo;</li>
+          <li><a href="api.html" accesskey="U">API</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="mp-multiprocessing-shell">
+<h1><tt class="xref py py-mod docutils literal"><span class="pre">mp</span></tt> &#8211; Multiprocessing shell<a class="headerlink" href="#mp-multiprocessing-shell" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-mp.mp_manager">
+<span id="manager"></span><h2>Manager<a class="headerlink" href="#module-mp.mp_manager" title="Permalink to this headline">¶</a></h2>
+<p>Starts the queue server and runs forever.</p>
+<p>A port will be busy as long as the server is running.</p>
+<p>Manual operation: just start the script, manually close when finished.</p>
+<dl class="docutils">
+<dt>Script operation: </dt>
+<dd><ul class="first last simple">
+<li>start with p=subprocess.Popen(...), call p.poll() to wait for</li>
+<li>an actual start, terminate with p.terminate() which takes</li>
+<li>around 20 seconds to actually close the process.</li>
+</ul>
+</dd>
+</dl>
+<p>Created on Sat Apr  6 21:01:26 2013</p>
+<dl class="function">
+<dt id="mp.mp_manager.CreateDoubleQueueServer">
+<tt class="descclassname">mp.mp_manager.</tt><tt class="descname">CreateDoubleQueueServer</tt><big>(</big><em>host</em>, <em>port</em>, <em>key</em>, <em>queue_size</em><big>)</big><a class="reference internal" href="_modules/mp/mp_manager.html#CreateDoubleQueueServer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mp.mp_manager.CreateDoubleQueueServer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates web server with two Python queues attached.</p>
+<div class="line-block">
+<div class="line">Variables:</div>
+<div class="line-block">
+<div class="line"><em>qtask</em>   &#8211; queue for distributing parallel tasks</div>
+<div class="line"><em>qresult</em> &#8211; queue for gathering processed results</div>
+</div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="module-mp.mp_master">
+<span id="master"></span><h2>Master<a class="headerlink" href="#module-mp.mp_master" title="Permalink to this headline">¶</a></h2>
+<p>Creates, distributes and gathers results of parallel calculation.</p>
+<p>Created on Sat Apr  6 21:01:26 2013</p>
+<dl class="class">
+<dt id="mp.mp_master.MPMaster">
+<em class="property">class </em><tt class="descclassname">mp.mp_master.</tt><tt class="descname">MPMaster</tt><big>(</big><em>kill_workers</em>, <em>profiling=False</em><big>)</big><a class="reference internal" href="_modules/mp/mp_master.html#MPMaster"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mp.mp_master.MPMaster" title="Permalink to this definition">¶</a></dt>
+<dd><p>A prototype class for parallel processing.</p>
+<dl class="method">
+<dt id="mp.mp_master.MPMaster.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>kill_workers</em>, <em>profiling=False</em><big>)</big><a class="reference internal" href="_modules/mp/mp_master.html#MPMaster.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mp.mp_master.MPMaster.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Connects to a queue server.</p>
+<div class="line-block">
+<div class="line">Params:</div>
+<div class="line-block">
+<div class="line">n_wrk      &#8211; number of workers to detect when all of them 
+are finished</div>
+<div class="line">profiling  &#8211;  whether to generate profiling information</div>
+</div>
+</div>
+<div class="line-block">
+<div class="line">Class variables:</div>
+<div class="line-block">
+<div class="line">self.task_max  &#8211; total number of tasks, for reporting</div>
+<div class="line">self.task_curr &#8211; current number of tasks, for reporting</div>
+</div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="mp.mp_master.MPMaster.get_new_task">
+<tt class="descname">get_new_task</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/mp/mp_master.html#MPMaster.get_new_task"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mp.mp_master.MPMaster.get_new_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>Shoud <strong>yield</strong> tasks. Not implemented.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mp.mp_master.MPMaster.process_result">
+<tt class="descname">process_result</tt><big>(</big><em>result</em>, <em>flush</em><big>)</big><a class="reference internal" href="_modules/mp/mp_master.html#MPMaster.process_result"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mp.mp_master.MPMaster.process_result" title="Permalink to this definition">¶</a></dt>
+<dd><p>Processes the result - saves to database, etc. Not implemented.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mp.mp_master.MPMaster.report">
+<tt class="descname">report</tt><big>(</big><em>last_t</em><big>)</big><a class="reference internal" href="_modules/mp/mp_master.html#MPMaster.report"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mp.mp_master.MPMaster.report" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prints time left.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mp.mp_master.MPMaster.run">
+<tt class="descname">run</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/mp/mp_master.html#MPMaster.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mp.mp_master.MPMaster.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Keeps input and output queues with limited length.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mp.mp_master.MPMaster.terminate_workers">
+<tt class="descname">terminate_workers</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/mp/mp_master.html#MPMaster.terminate_workers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mp.mp_master.MPMaster.terminate_workers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Put terminating messages in queue.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mp.mp_master.QueueManager">
+<em class="property">class </em><tt class="descclassname">mp.mp_master.</tt><tt class="descname">QueueManager</tt><big>(</big><em>address=None</em>, <em>authkey=None</em>, <em>serializer='pickle'</em><big>)</big><a class="reference internal" href="_modules/mp/mp_master.html#QueueManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mp.mp_master.QueueManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Connects multiprocessing module to web server distribution system.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-mp.mp_worker">
+<span id="worker"></span><h2>Worker<a class="headerlink" href="#module-mp.mp_worker" title="Permalink to this headline">¶</a></h2>
+<p>A parallel worker running in a separate process.</p>
+<p>Created on Sat Apr  6 21:01:26 2013</p>
+<dl class="class">
+<dt id="mp.mp_worker.MPWorker">
+<em class="property">class </em><tt class="descclassname">mp.mp_worker.</tt><tt class="descname">MPWorker</tt><big>(</big><em>wrk_idx</em><big>)</big><a class="reference internal" href="_modules/mp/mp_worker.html#MPWorker"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mp.mp_worker.MPWorker" title="Permalink to this definition">¶</a></dt>
+<dd><p>Accepts a parallel job and runs an appropriate processor.</p>
+<dl class="method">
+<dt id="mp.mp_worker.MPWorker.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>wrk_idx</em><big>)</big><a class="reference internal" href="_modules/mp/mp_worker.html#MPWorker.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mp.mp_worker.MPWorker.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Connects to distribution queues on init.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mp.mp_worker.MPWorker.run">
+<tt class="descname">run</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/mp/mp_worker.html#MPWorker.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mp.mp_worker.MPWorker.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Just gets a task, processes and sends back to output queue.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mp.mp_worker.QueueManager">
+<em class="property">class </em><tt class="descclassname">mp.mp_worker.</tt><tt class="descname">QueueManager</tt><big>(</big><em>address=None</em>, <em>authkey=None</em>, <em>serializer='pickle'</em><big>)</big><a class="reference internal" href="_modules/mp/mp_worker.html#QueueManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mp.mp_worker.QueueManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Connects multiprocessing module to web server distribution system.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-mp.mp_support">
+<span id="support"></span><h2>Support<a class="headerlink" href="#module-mp.mp_support" title="Permalink to this headline">¶</a></h2>
+<p>Script to start and stop multiprocessing part.</p>
+<p>All niuances are kept here, like 2 cores per process in SIFT stage
+and  1 core per process in NN stage.</p>
+<p>Created on Wed Jun 26 14:23:12 2013</p>
+<dl class="function">
+<dt id="mp.mp_support.mp_boost_nn">
+<tt class="descclassname">mp.mp_support.</tt><tt class="descname">mp_boost_nn</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/mp/mp_support.html#mp_boost_nn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mp.mp_support.mp_boost_nn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add workers for NN here.</p>
+<p>Because too many workers crash feature extraction.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mp.mp_support.mp_finalize">
+<tt class="descclassname">mp.mp_support.</tt><tt class="descname">mp_finalize</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/mp/mp_support.html#mp_finalize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mp.mp_support.mp_finalize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Terminating multiprocessing part.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mp.mp_support.mp_start">
+<tt class="descclassname">mp.mp_support.</tt><tt class="descname">mp_start</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/mp/mp_support.html#mp_start"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mp.mp_support.mp_start" title="Permalink to this definition">¶</a></dt>
+<dd><p>Starting mutiprocessing manager.</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#"><tt class="docutils literal"><span class="pre">mp</span></tt> &#8211; Multiprocessing shell</a><ul>
+<li><a class="reference internal" href="#module-mp.mp_manager">Manager</a></li>
+<li><a class="reference internal" href="#module-mp.mp_master">Master</a></li>
+<li><a class="reference internal" href="#module-mp.mp_worker">Worker</a></li>
+<li><a class="reference internal" href="#module-mp.mp_support">Support</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="api.html"
+                        title="previous chapter">API</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/mod_mp.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api.html" title="API"
+             >previous</a> |</li>
+        <li><a href="index.html">website-ibc 1.0 documentation</a> &raquo;</li>
+          <li><a href="api.html" >API</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Anton Akusok.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

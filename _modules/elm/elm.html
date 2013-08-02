@@ -1,0 +1,348 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>elm.elm &mdash; website-ibc 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="author" title="About these documents" href="../../about.html" />
+    <link rel="top" title="website-ibc 1.0 documentation" href="../../index.html" />
+    <link rel="up" title="elm" href="../elm.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">website-ibc 1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../elm.html" accesskey="U">elm</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for elm.elm</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;Implementation of Optimal Pruned Extreme Learning Machine.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">wibc_config</span> <span class="kn">import</span> <span class="n">IBCConfig</span> <span class="k">as</span> <span class="n">cf</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">minimize</span>
+<span class="kn">from</span> <span class="nn">mrsr</span> <span class="kn">import</span> <span class="n">mrsr</span>
+<span class="kn">import</span> <span class="nn">cPickle</span>
+<span class="kn">import</span> <span class="nn">random</span>
+
+
+<div class="viewcode-block" id="ELM"><a class="viewcode-back" href="../../elm.html#elm.elm.ELM">[docs]</a><span class="k">class</span> <span class="nc">ELM</span><span class="p">:</span>
+
+<div class="viewcode-block" id="ELM.__init__"><a class="viewcode-back" href="../../elm.html#elm.elm.ELM.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">cf</span><span class="o">.</span><span class="n">_show_progress</span><span class="p">:</span>        
+            <span class="k">print</span> <span class="s">&quot;ELM started!&quot;</span>
+        </div>
+<div class="viewcode-block" id="ELM.__del__"><a class="viewcode-back" href="../../elm.html#elm.elm.ELM.__del__">[docs]</a>    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">cf</span><span class="o">.</span><span class="n">_show_progress</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&quot;ELM finished!&quot;</span>
+</div>
+<div class="viewcode-block" id="ELM._project"><a class="viewcode-back" href="../../elm.html#elm.elm.ELM._project">[docs]</a>    <span class="k">def</span> <span class="nf">_project</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">neurons_dict</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Projects data to hidden layer H.</span>
+
+<span class="sd">        X: training data (no labels)</span>
+<span class="sd">        neurons_dict: keys are types of neurons, values are either an amount</span>
+<span class="sd">                      of such neurons, or a matrix W with bias column included</span>
+<span class="sd">        &quot;&quot;&quot;</span>        
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_sampl</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">H</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">n_sampl</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>        
+        <span class="bp">self</span><span class="o">.</span><span class="n">neurons_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="c">#  W includes bias as an additional column</span>
+        <span class="c">#  Additional 1 input is added to data       </span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">X</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">n_sampl</span><span class="p">,</span> <span class="mi">1</span><span class="p">))))</span>
+
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">neurons_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;lin&#39;</span><span class="p">]:</span>
+                <span class="n">N</span> <span class="o">=</span> <span class="n">neurons_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">long</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">complex</span><span class="p">)):</span>
+                    <span class="n">W</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_feat</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">W</span> <span class="o">=</span> <span class="n">neurons_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+                <span class="c">#  saving transformation matrix W</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">neurons_dict</span><span class="p">[</span><span class="s">&#39;lin&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">W</span>
+                <span class="c">#  extending hidden layer matrix H     </span>
+                <span class="n">H0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">W</span><span class="p">)</span>
+                <span class="n">H</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">H</span><span class="p">,</span> <span class="n">H0</span><span class="p">))</span>
+                
+            <span class="k">elif</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;tanh&#39;</span><span class="p">]:</span>
+                <span class="n">N</span> <span class="o">=</span> <span class="n">neurons_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">long</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">complex</span><span class="p">)):</span>
+                    <span class="c">#  normal distributed coefficients with regularization </span>
+                    <span class="c">#  to keep outputs in acceptable range</span>
+                    <span class="n">W</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_feat</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">N</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">N</span><span class="o">/</span><span class="mi">10</span><span class="p">)</span><span class="o">**</span><span class="mf">0.5</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">W</span> <span class="o">=</span> <span class="n">neurons_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+                <span class="c">#  saving transformation matrix W</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">neurons_dict</span><span class="p">[</span><span class="s">&#39;tanh&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">W</span>
+                <span class="c">#  extending hidden layer matrix H                </span>
+                <span class="n">H0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">W</span><span class="p">))</span>
+                <span class="n">H</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">H</span><span class="p">,</span> <span class="n">H0</span><span class="p">))</span>                
+                
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">print</span> <span class="s">&quot;Unknows neuron type </span><span class="si">%s</span><span class="s">, skip&quot;</span> <span class="o">%</span> <span class="n">key</span>    
+                
+        <span class="c">#  return projection</span>
+        <span class="k">return</span> <span class="n">H</span>
+     
+     </div>
+<div class="viewcode-block" id="ELM.e_LOO"><a class="viewcode-back" href="../../elm.html#elm.elm.ELM.e_LOO">[docs]</a>    <span class="k">def</span> <span class="nf">e_LOO</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">lmd</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="c">#  keeping number of samples low enough to fit into memory</span>
+        <span class="n">sampl_max</span> <span class="o">=</span> <span class="mi">1000</span>
+        <span class="k">if</span> <span class="n">H</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">sampl_max</span><span class="p">:</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">H</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="n">idx</span><span class="p">[:</span><span class="n">sampl_max</span><span class="p">]</span>
+            <span class="n">H</span> <span class="o">=</span> <span class="n">H</span><span class="p">[</span><span class="n">idx</span><span class="p">,:]</span>
+            <span class="n">Y</span> <span class="o">=</span> <span class="n">Y</span><span class="p">[</span><span class="n">idx</span><span class="p">,:]</span>
+        <span class="k">if</span> <span class="n">lmd</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">pH</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">pinv</span><span class="p">(</span><span class="n">H</span><span class="p">)</span>
+            <span class="n">P</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">H</span><span class="p">,</span> <span class="n">pH</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c">#  TROP-ELM stuff with lambda</span>
+            <span class="n">P</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">H</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">H</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">H</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">*</span><span class="n">lmd</span><span class="p">)</span>
+            <span class="n">P</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">H</span><span class="p">,</span> <span class="n">P</span><span class="p">)</span>
+            <span class="n">P</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">H</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+        <span class="n">e1</span> <span class="o">=</span> <span class="n">Y</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">Y</span><span class="p">)</span>
+        <span class="n">e2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">H</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">))</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">P</span><span class="p">)</span>
+        <span class="n">e</span> <span class="o">=</span> <span class="n">e1</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">e2</span><span class="p">,</span> <span class="p">(</span><span class="n">Y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">T</span>
+        <span class="c">#  mean error for multi-variate output, for each sample</span>
+        <span class="n">e</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">e</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>        
+     
+</div>
+<div class="viewcode-block" id="ELM.train_basic"><a class="viewcode-back" href="../../elm.html#elm.elm.ELM.train_basic">[docs]</a>    <span class="k">def</span> <span class="nf">train_basic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">neurons_dict</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_feat</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">H</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_project</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">neurons_dict</span><span class="p">)</span>    
+        <span class="k">if</span> <span class="n">cf</span><span class="o">.</span><span class="n">_show_progress</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&quot;basic: </span><span class="si">%d</span><span class="s"> neurons, LOO error = </span><span class="si">%.4f</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">H</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                                                           <span class="bp">self</span><span class="o">.</span><span class="n">e_LOO</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">H</span><span class="p">,</span> <span class="n">Y</span><span class="p">))</span>        
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">W1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">pinv</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">H</span><span class="p">),</span> <span class="n">Y</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lmd</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Yhat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">H</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">W1</span><span class="p">)</span>
+
+        </div>
+<div class="viewcode-block" id="ELM.train_op"><a class="viewcode-back" href="../../elm.html#elm.elm.ELM.train_op">[docs]</a>    <span class="k">def</span> <span class="nf">train_op</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">neurons_dict</span><span class="p">,</span> <span class="n">kmax</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">step</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_feat</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">H</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_project</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">neurons_dict</span><span class="p">)</span>    
+        <span class="bp">self</span><span class="o">.</span><span class="n">W1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">pinv</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">H</span><span class="p">),</span> <span class="n">Y</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">kmax</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">kmax</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">H</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">step</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">step</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">kmax</span> <span class="o">/</span> <span class="mi">25</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">E</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">kmax</span><span class="p">,))</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="s">&quot;+inf&quot;</span><span class="p">)</span>
+        <span class="k">print</span> <span class="s">&quot;basic: </span><span class="si">%d</span><span class="s"> neurons, LOO error = </span><span class="si">%.4f</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">H</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                                                       <span class="bp">self</span><span class="o">.</span><span class="n">e_LOO</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">H</span><span class="p">,</span> <span class="n">Y</span><span class="p">))</span>        
+
+        <span class="c">#  calculate LOO errors for different amount of centroids</span>
+        <span class="n">Rank</span> <span class="o">=</span> <span class="n">mrsr</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">H</span><span class="p">,</span> <span class="n">kmax</span><span class="o">=</span><span class="n">kmax</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">kmax</span><span class="p">,</span> <span class="n">step</span><span class="p">):</span>  
+            <span class="n">H</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">H</span><span class="p">[:,</span> <span class="n">Rank</span><span class="p">[:</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]]</span>
+            <span class="n">E</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">e_LOO</span><span class="p">(</span><span class="n">H</span><span class="p">,</span> <span class="n">Y</span><span class="p">)</span>            
+
+        <span class="c">#  find best sequence</span>
+        <span class="n">Rbest</span> <span class="o">=</span> <span class="n">Rank</span><span class="p">[:</span><span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">E</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="c">#  offset is a starting number in current neuron dict item</span>
+        <span class="n">offset</span> <span class="o">=</span> <span class="mi">0</span>        
+        <span class="n">new_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">neurons_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">indmin</span> <span class="o">=</span> <span class="n">offset</span>
+            <span class="n">indmax</span> <span class="o">=</span> <span class="n">offset</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">neurons_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">offset</span> <span class="o">=</span> <span class="n">indmax</span>
+            <span class="n">rank_idx</span> <span class="o">=</span> <span class="n">Rbest</span><span class="p">[</span> <span class="p">(</span><span class="n">Rbest</span> <span class="o">&gt;=</span> <span class="n">indmin</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">Rbest</span> <span class="o">&lt;</span> <span class="n">indmax</span><span class="p">)</span> <span class="p">]</span>
+            <span class="n">rank_idx</span> <span class="o">=</span> <span class="n">rank_idx</span> <span class="o">-</span> <span class="n">indmin</span>
+            <span class="n">W0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">neurons_dict</span><span class="p">[</span><span class="n">key</span><span class="p">][:,</span> <span class="n">rank_idx</span><span class="p">]</span>            
+            <span class="n">new_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">W0</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">H</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_project</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">new_dict</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">W1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">pinv</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">H</span><span class="p">),</span> <span class="n">Y</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lmd</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">print</span> <span class="s">&quot;pruned: </span><span class="si">%d</span><span class="s"> neurons, LOO error = </span><span class="si">%.4f</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">H</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                                                        <span class="bp">self</span><span class="o">.</span><span class="n">e_LOO</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">H</span><span class="p">,</span> <span class="n">Y</span><span class="p">))</span>        
+    
+</div>
+<div class="viewcode-block" id="ELM._train_trop"><a class="viewcode-back" href="../../elm.html#elm.elm.ELM._train_trop">[docs]</a>    <span class="k">def</span> <span class="nf">_train_trop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lmd</span><span class="p">):</span>
+        <span class="n">Y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">temp_Y</span>
+        <span class="n">kmax</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">temp_kmax</span>
+        <span class="n">step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">temp_step</span>
+        <span class="n">E</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">kmax</span><span class="p">,))</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="s">&quot;+inf&quot;</span><span class="p">)</span>
+        <span class="c">#  calculate LOO errors for different amount of centroids</span>
+        <span class="n">Rank</span> <span class="o">=</span> <span class="n">mrsr</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">H</span><span class="p">,</span> <span class="n">kmax</span><span class="o">=</span><span class="n">kmax</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">kmax</span><span class="p">,</span> <span class="n">step</span><span class="p">):</span>        
+            <span class="n">H</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">H</span><span class="p">[:,</span> <span class="n">Rank</span><span class="p">[:</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]]</span>
+            <span class="n">E</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">e_LOO</span><span class="p">(</span><span class="n">H</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">lmd</span><span class="p">)</span>            
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">Rbest</span> <span class="o">=</span> <span class="n">Rank</span><span class="p">[:</span><span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">E</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">H</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">H</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Rbest</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">e_LOO</span><span class="p">(</span><span class="n">H</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">lmd</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="ELM.train_trop"><a class="viewcode-back" href="../../elm.html#elm.elm.ELM.train_trop">[docs]</a>    <span class="k">def</span> <span class="nf">train_trop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">neurons_dict</span><span class="p">,</span> <span class="n">kmax</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">step</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_feat</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">H</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_project</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">neurons_dict</span><span class="p">)</span>    
+        <span class="bp">self</span><span class="o">.</span><span class="n">W1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">pinv</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">H</span><span class="p">),</span> <span class="n">Y</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lmd</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="n">kmax</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">kmax</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">H</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">step</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">step</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">kmax</span> <span class="o">/</span> <span class="mi">25</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">temp_Y</span> <span class="o">=</span> <span class="n">Y</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">temp_kmax</span> <span class="o">=</span> <span class="n">kmax</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">temp_step</span> <span class="o">=</span> <span class="n">step</span>
+        <span class="k">print</span> <span class="s">&quot;basic: </span><span class="si">%d</span><span class="s"> neurons, LOO error = </span><span class="si">%.4f</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">H</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                                                        <span class="bp">self</span><span class="o">.</span><span class="n">e_LOO</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">H</span><span class="p">,</span> <span class="n">Y</span><span class="p">))</span>        
+
+        <span class="n">res</span> <span class="o">=</span> <span class="n">minimize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_train_trop</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s">&quot;Nelder-Mead&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">res</span><span class="o">.</span><span class="n">success</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&quot;Lambda optimization failed, using basic results&quot;</span>
+            <span class="k">print</span> <span class="s">&quot;(or try to re-run the function)&quot;</span> 
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="n">lmd</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">x</span>
+        <span class="n">Rbest</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Rbest</span>
+
+        <span class="c">#  re-compiling W0 matrix according to ranking outputs</span>
+        <span class="c">#  offset is a starting number in current neuron dict item</span>
+        <span class="n">offset</span> <span class="o">=</span> <span class="mi">0</span>        
+        <span class="n">new_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">neurons_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">indmin</span> <span class="o">=</span> <span class="n">offset</span>
+            <span class="n">indmax</span> <span class="o">=</span> <span class="n">offset</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">neurons_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">offset</span> <span class="o">=</span> <span class="n">indmax</span>
+            <span class="n">rank_idx</span> <span class="o">=</span> <span class="n">Rbest</span><span class="p">[</span> <span class="p">(</span><span class="n">Rbest</span> <span class="o">&gt;=</span> <span class="n">indmin</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">Rbest</span> <span class="o">&lt;</span> <span class="n">indmax</span><span class="p">)</span> <span class="p">]</span>
+            <span class="c">#  if we have some neurons of that type</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">rank_idx</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">print</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s"> neurons: </span><span class="si">%d</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">rank_idx</span><span class="p">))</span>
+                <span class="n">rank_idx</span> <span class="o">=</span> <span class="n">rank_idx</span> <span class="o">-</span> <span class="n">indmin</span>
+                <span class="n">W0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">neurons_dict</span><span class="p">[</span><span class="n">key</span><span class="p">][:,</span> <span class="n">rank_idx</span><span class="p">]</span>            
+                <span class="n">new_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">W0</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">H</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_project</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">new_dict</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">W1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">pinv</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">H</span><span class="p">),</span> <span class="n">Y</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lmd</span> <span class="o">=</span> <span class="n">lmd</span>
+        <span class="k">print</span> <span class="s">&quot;final: </span><span class="si">%d</span><span class="s"> neurons, LOO error = </span><span class="si">%.4f</span><span class="s">, lambda = </span><span class="si">%f</span><span class="s">&quot;</span>\
+            <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">H</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">e_LOO</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">H</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">lmd</span><span class="p">),</span> <span class="n">lmd</span><span class="p">)</span>      
+        <span class="k">return</span> <span class="bp">True</span>
+        </div>
+<div class="viewcode-block" id="ELM.run"><a class="viewcode-back" href="../../elm.html#elm.elm.ELM.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="o">=</span><span class="p">[]):</span>
+        <span class="n">H</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_project</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">neurons_dict</span><span class="p">)</span>
+        <span class="n">Yhat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">H</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">W1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">Y</span> <span class="o">!=</span> <span class="p">[]:</span>
+            <span class="n">e</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">e_LOO</span><span class="p">(</span><span class="n">H</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lmd</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">Yhat</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Yhat</span>
+</div>
+<div class="viewcode-block" id="ELM.get_param"><a class="viewcode-back" href="../../elm.html#elm.elm.ELM.get_param">[docs]</a>    <span class="k">def</span> <span class="nf">get_param</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">param</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">param</span><span class="p">[</span><span class="s">&#39;W0&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">neurons_dict</span>
+        <span class="n">param</span><span class="p">[</span><span class="s">&#39;W1&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">W1</span>
+        <span class="n">param</span><span class="p">[</span><span class="s">&#39;lmd&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lmd</span>
+        <span class="k">return</span> <span class="n">param</span>
+        </div>
+<div class="viewcode-block" id="ELM.set_param"><a class="viewcode-back" href="../../elm.html#elm.elm.ELM.set_param">[docs]</a>    <span class="k">def</span> <span class="nf">set_param</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">param</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">neurons_dict</span> <span class="o">=</span> <span class="n">param</span><span class="p">[</span><span class="s">&#39;W0&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">W1</span> <span class="o">=</span> <span class="n">param</span><span class="p">[</span><span class="s">&#39;W1&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lmd</span> <span class="o">=</span> <span class="n">param</span><span class="p">[</span><span class="s">&#39;lmd&#39;</span><span class="p">]</span>
+        
+
+<span class="c">#if __name__==&quot;__main__&quot;:</span>
+    <span class="c">#(X,Y) = cPickle.load(open(&quot;iris.pkl&quot;,&quot;rb&quot;))</span>
+    
+    <span class="c">#D = cPickle.load(open(&quot;/home/akusoka1/Desktop/data2elm.pkl&quot;,&quot;rb&quot;))</span>
+    <span class="c">#X = D[&#39;Xr&#39;]</span>
+    <span class="c">#Y = D[&#39;Yr&#39;]</span>
+    <span class="c">#elm = ELM()</span>
+    <span class="c">#elm.train_trop(X, Y, {&#39;lin&#39;:1, &#39;tanh&#39;:50})</span>
+    <span class="c">#(Yhat,e) = elm.run(D[&#39;Xs&#39;], D[&#39;Ys&#39;])</span>
+    <span class="c">#print float(np.sum(np.argmax(Yhat,1) == np.argmax(D[&#39;Ys&#39;],1))) / D[&#39;Ys&#39;].shape[0]</span>
+
+
+
+
+
+
+
+
+
+
+    </div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">website-ibc 1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../elm.html" >elm</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Anton Akusok.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

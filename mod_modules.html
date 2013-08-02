@@ -1,0 +1,338 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>modules – Auxiliary modules &mdash; website-ibc 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="author" title="About these documents" href="about.html" />
+    <link rel="top" title="website-ibc 1.0 documentation" href="index.html" />
+    <link rel="up" title="API" href="api.html" />
+    <link rel="next" title="elm – ELM implementation" href="elm.html" />
+    <link rel="prev" title="config – Configuration files" href="mod_config.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="elm.html" title="elm – ELM implementation"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="mod_config.html" title="config – Configuration files"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">website-ibc 1.0 documentation</a> &raquo;</li>
+          <li><a href="api.html" accesskey="U">API</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="modules-auxiliary-modules">
+<h1><tt class="xref py py-mod docutils literal"><span class="pre">modules</span></tt> &#8211; Auxiliary modules<a class="headerlink" href="#modules-auxiliary-modules" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-modules.classifier">
+<span id="classifier"></span><h2>Classifier<a class="headerlink" href="#module-modules.classifier" title="Permalink to this headline">¶</a></h2>
+<p>ELM-based classifier with normalization.</p>
+<p>Created on Wed Jun 26 15:30:16 2013</p>
+<dl class="function">
+<dt id="modules.classifier.get_data">
+<tt class="descclassname">modules.classifier.</tt><tt class="descname">get_data</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/modules/classifier.html#get_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#modules.classifier.get_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Automatically select between HDF5 and img_data.pkl.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="modules.classifier.run_elm">
+<tt class="descclassname">modules.classifier.</tt><tt class="descname">run_elm</tt><big>(</big><em>save_txt</em><big>)</big><a class="reference internal" href="_modules/modules/classifier.html#run_elm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#modules.classifier.run_elm" title="Permalink to this definition">¶</a></dt>
+<dd><p>ELM classifier executor, uses other functions.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="modules.classifier.save_res">
+<tt class="descclassname">modules.classifier.</tt><tt class="descname">save_res</tt><big>(</big><em>Yh</em>, <em>I</em><big>)</big><a class="reference internal" href="_modules/modules/classifier.html#save_res"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#modules.classifier.save_res" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save results to HDF5 or formatted text document.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="modules.classifier.train_elm">
+<tt class="descclassname">modules.classifier.</tt><tt class="descname">train_elm</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/modules/classifier.html#train_elm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#modules.classifier.train_elm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Assume only trained on HDF5 file.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-modules.get_descriptors">
+<span id="get-descriptors"></span><h2>Get descriptors<a class="headerlink" href="#module-modules.get_descriptors" title="Permalink to this headline">¶</a></h2>
+<p>Processes an image and returns all data (properties + descriptors).</p>
+<p>If something goes wrong, returns string describing the error.</p>
+<dl class="class">
+<dt id="modules.get_descriptors.Master">
+<em class="property">class </em><tt class="descclassname">modules.get_descriptors.</tt><tt class="descname">Master</tt><big>(</big><em>kill_workers</em><big>)</big><a class="reference internal" href="_modules/modules/get_descriptors.html#Master"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#modules.get_descriptors.Master" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements &#8220;get_new_task&#8221; and &#8220;process_result&#8221; of Master class.</p>
+<dl class="method">
+<dt id="modules.get_descriptors.Master._process_result">
+<tt class="descname">_process_result</tt><big>(</big><em>result</em>, <em>flush</em><big>)</big><a class="reference internal" href="_modules/modules/get_descriptors.html#Master._process_result"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#modules.get_descriptors.Master._process_result" title="Permalink to this definition">¶</a></dt>
+<dd><p>Demo mode, save output as is.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="modules.get_descriptors.Master._process_result_hdf5">
+<tt class="descname">_process_result_hdf5</tt><big>(</big><em>result</em>, <em>flush</em><big>)</big><a class="reference internal" href="_modules/modules/get_descriptors.html#Master._process_result_hdf5"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#modules.get_descriptors.Master._process_result_hdf5" title="Permalink to this definition">¶</a></dt>
+<dd><p>Batch mode, write output to HDF5 file.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="modules.get_descriptors.Master.get_new_task">
+<tt class="descname">get_new_task</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/modules/get_descriptors.html#Master.get_new_task"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#modules.get_descriptors.Master.get_new_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>Combines a new task.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="modules.get_descriptors.Master.process_result">
+<tt class="descname">process_result</tt><big>(</big><em>result</em>, <em>flush</em><big>)</big><a class="reference internal" href="_modules/modules/get_descriptors.html#Master.process_result"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#modules.get_descriptors.Master.process_result" title="Permalink to this definition">¶</a></dt>
+<dd><p>Choose between batch and demo mode.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="modules.get_descriptors.calc_descr">
+<tt class="descclassname">modules.get_descriptors.</tt><tt class="descname">calc_descr</tt><big>(</big><em>kill_workers</em><big>)</big><a class="reference internal" href="_modules/modules/get_descriptors.html#calc_descr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#modules.get_descriptors.calc_descr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Actually starts and stops mp master.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-modules.get_nn">
+<span id="get-nn"></span><h2>Get NN<a class="headerlink" href="#module-modules.get_nn" title="Permalink to this headline">¶</a></h2>
+<p>Processes an image and returns all data (properties + descriptors).</p>
+<p>If something goes wrong, returns string describing the error.</p>
+<dl class="class">
+<dt id="modules.get_nn.Master">
+<em class="property">class </em><tt class="descclassname">modules.get_nn.</tt><tt class="descname">Master</tt><big>(</big><em>kill_workers</em><big>)</big><a class="reference internal" href="_modules/modules/get_nn.html#Master"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#modules.get_nn.Master" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements &#8220;get_new_task&#8221; and &#8220;process_result&#8221; of Master class.</p>
+<dl class="method">
+<dt id="modules.get_nn.Master._get_descr">
+<tt class="descname">_get_descr</tt><big>(</big><em>batch</em><big>)</big><a class="reference internal" href="_modules/modules/get_nn.html#Master._get_descr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#modules.get_nn.Master._get_descr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get descriptors from HDF5 or special file.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="modules.get_nn.Master._process_result">
+<tt class="descname">_process_result</tt><big>(</big><em>result</em>, <em>flush</em><big>)</big><a class="reference internal" href="_modules/modules/get_nn.html#Master._process_result"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#modules.get_nn.Master._process_result" title="Permalink to this definition">¶</a></dt>
+<dd><p>Demo mode, save output as is.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="modules.get_nn.Master._process_result_hdf5">
+<tt class="descname">_process_result_hdf5</tt><big>(</big><em>result</em>, <em>flush</em><big>)</big><a class="reference internal" href="_modules/modules/get_nn.html#Master._process_result_hdf5"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#modules.get_nn.Master._process_result_hdf5" title="Permalink to this definition">¶</a></dt>
+<dd><p>Batch mode, write output to HDF5 file.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="modules.get_nn.Master.get_new_task">
+<tt class="descname">get_new_task</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/modules/get_nn.html#Master.get_new_task"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#modules.get_nn.Master.get_new_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>Assembles a multiprocessing task.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="modules.get_nn.Master.process_result">
+<tt class="descname">process_result</tt><big>(</big><em>result</em>, <em>flush</em><big>)</big><a class="reference internal" href="_modules/modules/get_nn.html#Master.process_result"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#modules.get_nn.Master.process_result" title="Permalink to this definition">¶</a></dt>
+<dd><p>Choose between batch and demo mode.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="modules.get_nn.calc_nn">
+<tt class="descclassname">modules.get_nn.</tt><tt class="descname">calc_nn</tt><big>(</big><em>kill_workers</em><big>)</big><a class="reference internal" href="_modules/modules/get_nn.html#calc_nn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#modules.get_nn.calc_nn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Starts and stops mp master to get NN.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-modules.hdf5_creator">
+<span id="hdf5-creator"></span><h2>HDF5 creator<a class="headerlink" href="#module-modules.hdf5_creator" title="Permalink to this headline">¶</a></h2>
+<p>Creates .h5 file, and fills websites in it.</p>
+<p>Created on Thu Jun 20 14:07:34 2013</p>
+<dl class="function">
+<dt id="modules.hdf5_creator.create_empty_hdf5">
+<tt class="descclassname">modules.hdf5_creator.</tt><tt class="descname">create_empty_hdf5</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/modules/hdf5_creator.html#create_empty_hdf5"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#modules.hdf5_creator.create_empty_hdf5" title="Permalink to this definition">¶</a></dt>
+<dd><p>Builds an empty HDF5 file having the given tables.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="modules.hdf5_creator.init_hdf5">
+<tt class="descclassname">modules.hdf5_creator.</tt><tt class="descname">init_hdf5</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/modules/hdf5_creator.html#init_hdf5"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#modules.hdf5_creator.init_hdf5" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fills websites into an empty HDF5.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-modules.img_preprocessor">
+<span id="image-preprocessor"></span><h2>Image preprocessor<a class="headerlink" href="#module-modules.img_preprocessor" title="Permalink to this headline">¶</a></h2>
+<p>Processes an image and returns all data (properties + descriptors).</p>
+<p>If something goes wrong, returns string describing the error.</p>
+<dl class="function">
+<dt id="modules.img_preprocessor._get_img_list">
+<tt class="descclassname">modules.img_preprocessor.</tt><tt class="descname">_get_img_list</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/modules/img_preprocessor.html#_get_img_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#modules.img_preprocessor._get_img_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a list of valid images, with old and new paths.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="modules.img_preprocessor._normalize_images">
+<tt class="descclassname">modules.img_preprocessor.</tt><tt class="descname">_normalize_images</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/modules/img_preprocessor.html#_normalize_images"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#modules.img_preprocessor._normalize_images" title="Permalink to this definition">¶</a></dt>
+<dd><p>Normalize images, no statistics kept.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="modules.img_preprocessor._normalize_images_hdf5">
+<tt class="descclassname">modules.img_preprocessor.</tt><tt class="descname">_normalize_images_hdf5</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/modules/img_preprocessor.html#_normalize_images_hdf5"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#modules.img_preprocessor._normalize_images_hdf5" title="Permalink to this definition">¶</a></dt>
+<dd><p>Normalize images, write image records with statistics to HDF5 file.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="modules.img_preprocessor.normalize_images">
+<tt class="descclassname">modules.img_preprocessor.</tt><tt class="descname">normalize_images</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/modules/img_preprocessor.html#normalize_images"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#modules.img_preprocessor.normalize_images" title="Permalink to this definition">¶</a></dt>
+<dd><p>Actually processes an image.</p>
+<p>Chooses either single or batch version.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-modules.img_repr">
+<span id="image-representation"></span><h2>Image representation<a class="headerlink" href="#module-modules.img_repr" title="Permalink to this headline">¶</a></h2>
+<p>Calculates image representation based on its descriptors.</p>
+<p>Created on Wed Jun 26 12:58:26 2013</p>
+<dl class="class">
+<dt id="modules.img_repr.Repr">
+<em class="property">class </em><tt class="descclassname">modules.img_repr.</tt><tt class="descname">Repr</tt><a class="reference internal" href="_modules/modules/img_repr.html#Repr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#modules.img_repr.Repr" title="Permalink to this definition">¶</a></dt>
+<dd><p>A separate class implementing image representation.</p>
+<dl class="method">
+<dt id="modules.img_repr.Repr._repr">
+<tt class="descname">_repr</tt><big>(</big><em>c</em>, <em>d</em><big>)</big><a class="reference internal" href="_modules/modules/img_repr.html#Repr._repr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#modules.img_repr.Repr._repr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the whole representation as a vector.</p>
+<div class="line-block">
+<div class="line"><strong>c</strong> &#8211; indexes of neighbours</div>
+<div class="line"><strong>d</strong> &#8211; distances to neighbours</div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="modules.img_repr._get_repr">
+<tt class="descclassname">modules.img_repr.</tt><tt class="descname">_get_repr</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/modules/img_repr.html#_get_repr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#modules.img_repr._get_repr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get image representation from &#8220;_img_data&#8221; file.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="modules.img_repr._get_repr_hdf5">
+<tt class="descclassname">modules.img_repr.</tt><tt class="descname">_get_repr_hdf5</tt><big>(</big><em>all_repr</em><big>)</big><a class="reference internal" href="_modules/modules/img_repr.html#_get_repr_hdf5"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#modules.img_repr._get_repr_hdf5" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filling representation of images from the given websites.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="modules.img_repr.get_repr">
+<tt class="descclassname">modules.img_repr.</tt><tt class="descname">get_repr</tt><big>(</big><em>all_repr=False</em><big>)</big><a class="reference internal" href="_modules/modules/img_repr.html#get_repr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#modules.img_repr.get_repr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Actually gets representation, using correct method.</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#"><tt class="docutils literal"><span class="pre">modules</span></tt> &#8211; Auxiliary modules</a><ul>
+<li><a class="reference internal" href="#module-modules.classifier">Classifier</a></li>
+<li><a class="reference internal" href="#module-modules.get_descriptors">Get descriptors</a></li>
+<li><a class="reference internal" href="#module-modules.get_nn">Get NN</a></li>
+<li><a class="reference internal" href="#module-modules.hdf5_creator">HDF5 creator</a></li>
+<li><a class="reference internal" href="#module-modules.img_preprocessor">Image preprocessor</a></li>
+<li><a class="reference internal" href="#module-modules.img_repr">Image representation</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="mod_config.html"
+                        title="previous chapter"><tt class="docutils literal"><span class="pre">config</span></tt> &#8211; Configuration files</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="elm.html"
+                        title="next chapter"><tt class="docutils literal"><span class="pre">elm</span></tt> &#8211; ELM implementation</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/mod_modules.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="elm.html" title="elm – ELM implementation"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="mod_config.html" title="config – Configuration files"
+             >previous</a> |</li>
+        <li><a href="index.html">website-ibc 1.0 documentation</a> &raquo;</li>
+          <li><a href="api.html" >API</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Anton Akusok.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

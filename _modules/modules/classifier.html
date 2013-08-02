@@ -1,0 +1,252 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>modules.classifier &mdash; website-ibc 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="author" title="About these documents" href="../../about.html" />
+    <link rel="top" title="website-ibc 1.0 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">website-ibc 1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for modules.classifier</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Created on Wed Jun 26 15:30:16 2013</span>
+
+<span class="sd">@author: akusoka1</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">wibc_config</span> <span class="kn">import</span> <span class="n">IBCConfig</span> <span class="k">as</span> <span class="n">cf</span>
+<span class="kn">from</span> <span class="nn">tables</span> <span class="kn">import</span> <span class="n">openFile</span>
+<span class="kn">from</span> <span class="nn">elm.elm</span> <span class="kn">import</span> <span class="n">ELM</span>
+<span class="kn">import</span> <span class="nn">cPickle</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+
+
+
+<div class="viewcode-block" id="get_data"><a class="viewcode-back" href="../../mod_modules.html#modules.classifier.get_data">[docs]</a><span class="k">def</span> <span class="nf">get_data</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Automatically select between HDF5 and img_data.pkl.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">cf</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s">&quot;hdf5&quot;</span><span class="p">:</span>
+        <span class="n">db</span> <span class="o">=</span> <span class="n">openFile</span><span class="p">(</span><span class="n">cf</span><span class="o">.</span><span class="n">_hdf5</span><span class="p">,</span> <span class="s">&quot;r&quot;</span><span class="p">)</span>
+        <span class="n">Images</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">Images</span>
+        <span class="n">Websites</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">Websites</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">Images</span><span class="o">.</span><span class="n">nrows</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="n">cf</span><span class="o">.</span><span class="n">_maxc</span><span class="p">))</span>
+        <span class="n">Y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="n">cf</span><span class="o">.</span><span class="n">_maxc</span><span class="p">))</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="n">I</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c"># getting translation table for ws_index: url</span>
+        <span class="n">nw</span> <span class="o">=</span> <span class="n">Websites</span><span class="o">.</span><span class="n">nrows</span>
+        <span class="n">urls</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">Websites</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nw</span><span class="p">):</span>
+            <span class="n">urls</span><span class="p">[</span><span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span>
+        <span class="c"># gathering data</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">Images</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+            <span class="n">X</span><span class="p">[</span><span class="n">i</span><span class="p">,:]</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s">&quot;img_repr&quot;</span><span class="p">]</span>
+            <span class="n">Y</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="s">&quot;classN&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">I</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">urls</span><span class="p">[</span><span class="n">row</span><span class="p">[</span><span class="s">&quot;site_index&quot;</span><span class="p">]])</span>
+            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">X</span><span class="p">,</span><span class="n">Y</span><span class="p">,</span><span class="n">I</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c"># assume that true class is unknown in demo mode</span>
+        <span class="n">D</span> <span class="o">=</span> <span class="n">cPickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">cf</span><span class="o">.</span><span class="n">_img_data</span><span class="p">,</span> <span class="s">&quot;rb&quot;</span><span class="p">))</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">d</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">D</span><span class="p">])</span>
+        <span class="n">WS</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">D</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">X</span><span class="p">,[],</span><span class="n">WS</span>
+                
+</div>
+<div class="viewcode-block" id="train_elm"><a class="viewcode-back" href="../../mod_modules.html#modules.classifier.train_elm">[docs]</a><span class="k">def</span> <span class="nf">train_elm</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Assume only trained on HDF5 file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">cf</span><span class="o">.</span><span class="n">_mode</span> <span class="o">!=</span> <span class="s">&quot;hdf5&quot;</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s">&quot;Can train ELM only in batch mode.&quot;</span>
+        <span class="k">return</span>
+    <span class="n">X</span><span class="p">,</span><span class="n">Y</span><span class="p">,</span><span class="n">_</span> <span class="o">=</span> <span class="n">get_data</span><span class="p">()</span>
+    <span class="c"># randomly shuffle the data</span>
+    <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="p">:]</span>
+    <span class="n">Y</span> <span class="o">=</span> <span class="n">Y</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="p">:]</span>
+    <span class="n">Xt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+    <span class="n">Yt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">Y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+    <span class="n">Xv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+    <span class="n">Yv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">Y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+    <span class="n">Xs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+    <span class="n">Ys</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">Y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">Y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>  <span class="c"># for each class:</span>
+        <span class="n">idxc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">Y</span><span class="p">[:,</span><span class="n">c</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">idxc</span> <span class="o">!=</span> <span class="p">[]:</span>  <span class="c"># if there are any samples of that class:</span>
+            <span class="c"># calculate training and validation sample indexes</span>
+            <span class="n">l</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">idxc</span><span class="p">)</span>
+            <span class="n">j1</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="n">cf</span><span class="o">.</span><span class="n">_train_size</span><span class="p">)</span>
+            <span class="n">j2</span> <span class="o">=</span> <span class="n">j1</span> <span class="o">+</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">l</span> <span class="o">-</span> <span class="n">j1</span><span class="p">,</span> <span class="n">cf</span><span class="o">.</span><span class="n">_val_size</span><span class="p">))</span>
+            <span class="n">j3</span> <span class="o">=</span> <span class="n">j1</span> <span class="o">+</span> <span class="n">j2</span> <span class="o">+</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">l</span> <span class="o">-</span> <span class="n">j1</span> <span class="o">-</span> <span class="n">j2</span><span class="p">,</span> <span class="n">cf</span><span class="o">.</span><span class="n">_test_size</span><span class="p">))</span>
+            <span class="c"># gathering training and validation sets</span>
+            <span class="n">Xt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">Xt</span><span class="p">,</span> <span class="n">X</span><span class="p">[</span><span class="n">idxc</span><span class="p">[:</span><span class="n">j1</span><span class="p">],</span> <span class="p">:]))</span>
+            <span class="n">Yt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">Yt</span><span class="p">,</span> <span class="n">Y</span><span class="p">[</span><span class="n">idxc</span><span class="p">[:</span><span class="n">j1</span><span class="p">],</span> <span class="p">:]))</span>
+            <span class="n">Xv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">Xv</span><span class="p">,</span> <span class="n">X</span><span class="p">[</span><span class="n">idxc</span><span class="p">[</span><span class="n">j1</span><span class="p">:</span><span class="n">j2</span><span class="p">],</span> <span class="p">:]))</span>
+            <span class="n">Yv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">Yv</span><span class="p">,</span> <span class="n">Y</span><span class="p">[</span><span class="n">idxc</span><span class="p">[</span><span class="n">j1</span><span class="p">:</span><span class="n">j2</span><span class="p">],</span> <span class="p">:]))</span>
+            <span class="n">Xs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">Xs</span><span class="p">,</span> <span class="n">X</span><span class="p">[</span><span class="n">idxc</span><span class="p">[</span><span class="n">j2</span><span class="p">:</span><span class="n">j3</span><span class="p">],</span> <span class="p">:]))</span>
+            <span class="n">Ys</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">Ys</span><span class="p">,</span> <span class="n">Y</span><span class="p">[</span><span class="n">idxc</span><span class="p">[</span><span class="n">j2</span><span class="p">:</span><span class="n">j3</span><span class="p">],</span> <span class="p">:]))</span>
+
+    <span class="c"># normalizing data</span>
+    <span class="n">xm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">Xt</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">xs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">Xt</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">xs</span><span class="p">[</span><span class="n">xs</span><span class="o">==</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c"># prevent dividing by zero for empty values</span>
+    <span class="n">Xt</span> <span class="o">=</span> <span class="p">(</span><span class="n">Xt</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">xm</span><span class="p">,</span> <span class="p">(</span><span class="n">Xt</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">)))</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="p">(</span><span class="n">Xt</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="n">Xv</span> <span class="o">=</span> <span class="p">(</span><span class="n">Xv</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">xm</span><span class="p">,</span> <span class="p">(</span><span class="n">Xv</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">)))</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="p">(</span><span class="n">Xv</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="n">Xs</span> <span class="o">=</span> <span class="p">(</span><span class="n">Xs</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">xm</span><span class="p">,</span> <span class="p">(</span><span class="n">Xs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">)))</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="p">(</span><span class="n">Xs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">))</span>
+            
+    <span class="c"># training the best elm</span>
+    <span class="n">elm</span> <span class="o">=</span> <span class="n">ELM</span><span class="p">()</span>
+    <span class="n">acc_best</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">param</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">cf</span><span class="o">.</span><span class="n">_elm_rep</span><span class="p">):</span>
+        <span class="n">elm</span><span class="o">.</span><span class="n">train_basic</span><span class="p">(</span><span class="n">Xt</span><span class="p">,</span> <span class="n">Yt</span><span class="p">,</span> <span class="p">{</span><span class="s">&#39;lin&#39;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span> <span class="s">&#39;tanh&#39;</span><span class="p">:</span><span class="n">cf</span><span class="o">.</span><span class="n">_neurons</span><span class="p">})</span>
+        <span class="n">Yvh</span> <span class="o">=</span> <span class="n">elm</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">Xv</span><span class="p">)</span>
+        <span class="n">acc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">Yv</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">Yvh</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">acc</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">acc</span><span class="p">)</span> <span class="o">/</span> <span class="n">Yv</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>     
+        <span class="k">if</span> <span class="n">acc</span> <span class="o">&gt;</span> <span class="n">acc_best</span><span class="p">:</span>
+            <span class="n">acc_best</span> <span class="o">=</span> <span class="n">acc</span>
+            <span class="n">Ysh</span> <span class="o">=</span> <span class="n">elm</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">Xs</span><span class="p">)</span>
+            <span class="n">accs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">Ys</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">Ysh</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+            <span class="n">accs</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">accs</span><span class="p">)</span> <span class="o">/</span> <span class="n">Ys</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>     
+            <span class="k">print</span> <span class="s">&quot;acc val = </span><span class="si">%.3f</span><span class="s">, test = </span><span class="si">%.3f</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">acc</span><span class="p">,</span> <span class="n">accs</span><span class="p">)</span>
+            <span class="c">#cPickle.dump((Yv, Yvh, Ys, Ysh), open(&quot;my_%d.pkl&quot;%p1,&quot;wb&quot;), -1)</span>
+            <span class="n">param</span> <span class="o">=</span> <span class="n">elm</span><span class="o">.</span><span class="n">get_param</span><span class="p">()</span>
+            <span class="n">param</span><span class="p">[</span><span class="s">&quot;xm&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">xm</span>
+            <span class="n">param</span><span class="p">[</span><span class="s">&quot;xs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">xs</span>
+
+    <span class="n">cPickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="nb">open</span><span class="p">(</span><span class="n">cf</span><span class="o">.</span><span class="n">_elm_param</span><span class="p">,</span> <span class="s">&quot;wb&quot;</span><span class="p">),</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    
+</div>
+<div class="viewcode-block" id="save_res"><a class="viewcode-back" href="../../mod_modules.html#modules.classifier.save_res">[docs]</a><span class="k">def</span> <span class="nf">save_res</span><span class="p">(</span><span class="n">Yh</span><span class="p">,</span> <span class="n">I</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Save results to HDF5 or formatted text document.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># determining results for websites</span>
+    <span class="n">wslist</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">I</span><span class="p">))</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">wslist</span><span class="p">),</span> <span class="n">Yh</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">Yh</span><span class="p">)):</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">wslist</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">I</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="n">res</span><span class="p">[</span><span class="n">idx</span><span class="p">,:]</span> <span class="o">+=</span> <span class="n">Yh</span><span class="p">[</span><span class="n">i</span><span class="p">,:]</span>        
+        
+    <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">cf</span><span class="o">.</span><span class="n">_f_out</span><span class="p">,</span> <span class="s">&quot;w&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">wslist</span><span class="p">)):</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">;</span><span class="si">%d</span><span class="s">;</span><span class="si">%s</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">wslist</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="n">i</span><span class="p">,:]),</span> <span class="nb">str</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="n">i</span><span class="p">,:]))</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="run_elm"><a class="viewcode-back" href="../../mod_modules.html#modules.classifier.run_elm">[docs]</a><span class="k">def</span> <span class="nf">run_elm</span><span class="p">(</span><span class="n">save_txt</span><span class="p">):</span>
+    <span class="n">X</span><span class="p">,</span><span class="n">Y</span><span class="p">,</span><span class="n">I</span> <span class="o">=</span> <span class="n">get_data</span><span class="p">()</span>
+    <span class="c"># initialize elm</span>
+    <span class="n">elm</span> <span class="o">=</span> <span class="n">ELM</span><span class="p">()</span>
+    <span class="n">param</span> <span class="o">=</span> <span class="n">cPickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">cf</span><span class="o">.</span><span class="n">_elm_param</span><span class="p">,</span> <span class="s">&quot;rb&quot;</span><span class="p">))</span>
+    <span class="n">elm</span><span class="o">.</span><span class="n">set_param</span><span class="p">(</span><span class="n">param</span><span class="p">)</span>
+
+    <span class="c"># normalize data</span>
+    <span class="n">xm</span> <span class="o">=</span> <span class="n">param</span><span class="p">[</span><span class="s">&quot;xm&quot;</span><span class="p">]</span>
+    <span class="n">xs</span> <span class="o">=</span> <span class="n">param</span><span class="p">[</span><span class="s">&quot;xs&quot;</span><span class="p">]</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="p">(</span><span class="n">X</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">xm</span><span class="p">,</span> <span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">)))</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">))</span>
+
+    <span class="c"># run elm</span>
+    <span class="n">Yh</span> <span class="o">=</span> <span class="n">elm</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+    <span class="k">print</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">Yh</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="c"># if true classes are known, show error</span>
+    <span class="k">if</span> <span class="n">Y</span> <span class="o">!=</span> <span class="p">[]:</span>
+        <span class="n">err</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">Yh</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">err</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">err</span><span class="p">)</span> <span class="o">/</span> <span class="n">Y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">print</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">print</span> <span class="s">&quot;classification accuracy = </span><span class="si">%.03f</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">err</span>
+
+    <span class="c"># save results</span>
+    <span class="k">if</span> <span class="n">save_txt</span><span class="p">:</span>
+        <span class="n">save_res</span><span class="p">(</span><span class="n">Yh</span><span class="p">,</span> <span class="n">I</span><span class="p">)</span>    
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">cPickle</span><span class="o">.</span><span class="n">dump</span><span class="p">((</span><span class="n">Y</span><span class="p">,</span><span class="n">Yh</span><span class="p">,</span><span class="n">I</span><span class="p">),</span> <span class="nb">open</span><span class="p">(</span><span class="n">cf</span><span class="o">.</span><span class="n">_f_out</span><span class="o">+</span><span class="s">&quot;.pkl&quot;</span><span class="p">,</span> <span class="s">&quot;wb&quot;</span><span class="p">),</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+</pre></div></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">website-ibc 1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Anton Akusok.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

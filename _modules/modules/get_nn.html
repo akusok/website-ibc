@@ -1,0 +1,212 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>modules.get_nn &mdash; website-ibc 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="author" title="About these documents" href="../../about.html" />
+    <link rel="top" title="website-ibc 1.0 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">website-ibc 1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for modules.get_nn</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;Processes an image and returns all data (properties + descriptors).</span>
+
+<span class="sd">If something goes wrong, returns string describing the error.</span>
+<span class="sd">@author: akusoka1</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">wibc_config</span> <span class="kn">import</span> <span class="n">IBCConfig</span> <span class="k">as</span> <span class="n">cf</span>
+<span class="kn">from</span> <span class="nn">mp.mp_master</span> <span class="kn">import</span> <span class="n">MPMaster</span>
+<span class="kn">from</span> <span class="nn">tables</span> <span class="kn">import</span> <span class="n">openFile</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">cPickle</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+
+<div class="viewcode-block" id="Master"><a class="viewcode-back" href="../../mod_modules.html#modules.get_nn.Master">[docs]</a><span class="k">class</span> <span class="nc">Master</span><span class="p">(</span><span class="n">MPMaster</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Implements &quot;get_new_task&quot; and &quot;process_result&quot; of Master class.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kill_workers</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Master</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">kill_workers</span><span class="p">,</span> <span class="n">profiling</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">tasks</span> <span class="o">=</span> <span class="p">[]</span>   
+        <span class="c"># preparing for job generation</span>
+        <span class="k">if</span> <span class="n">cf</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s">&quot;hdf5&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">hdf5</span> <span class="o">=</span> <span class="n">openFile</span><span class="p">(</span><span class="n">cf</span><span class="o">.</span><span class="n">_hdf5</span><span class="p">,</span> <span class="s">&quot;a&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Regions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hdf5</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">Regions</span>        
+            <span class="bp">self</span><span class="o">.</span><span class="n">Descriptors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hdf5</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">Descriptors</span>
+            <span class="c"># gathering a list of tasks</span>
+            <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">Regions</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="s">&quot;neighbours&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">tasks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s">&quot;index&quot;</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">img_data</span> <span class="o">=</span> <span class="n">cPickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">cf</span><span class="o">.</span><span class="n">_img_data</span><span class="p">,</span> <span class="s">&quot;rb&quot;</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tasks</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">img_data</span><span class="p">))</span>
+        
+        <span class="c"># initializing reporting part</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">task_max</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tasks</span><span class="p">)</span><span class="o">/</span><span class="n">cf</span><span class="o">.</span><span class="n">_nn_batch</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">task_curr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">task_max</span>
+
+
+    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">cf</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s">&quot;hdf5&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">hdf5</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            
+    
+<div class="viewcode-block" id="Master._get_descr"><a class="viewcode-back" href="../../mod_modules.html#modules.get_nn.Master._get_descr">[docs]</a>    <span class="k">def</span> <span class="nf">_get_descr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">):</span>
+        <span class="n">descrs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">cf</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s">&quot;hdf5&quot;</span><span class="p">:</span>
+            <span class="n">descrs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Descriptors</span><span class="o">.</span><span class="n">read_coordinates</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">field</span><span class="o">=</span><span class="s">&quot;data&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">descrs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">img_data</span><span class="p">[</span><span class="n">b</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">batch</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">descrs</span>
+        
+        </div>
+<div class="viewcode-block" id="Master.get_new_task"><a class="viewcode-back" href="../../mod_modules.html#modules.get_nn.Master.get_new_task">[docs]</a>    <span class="k">def</span> <span class="nf">get_new_task</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># just yielding tasks here</span>
+        <span class="n">batch</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tasks</span><span class="p">:</span>
+            <span class="n">batch</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">cf</span><span class="o">.</span><span class="n">_nn_batch</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="p">(</span><span class="s">&quot;nn&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_descr</span><span class="p">(</span><span class="n">batch</span><span class="p">),</span> <span class="n">batch</span><span class="p">)</span>
+                <span class="n">batch</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c"># final batch</span>
+        <span class="k">yield</span> <span class="p">(</span><span class="s">&quot;nn&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_descr</span><span class="p">(</span><span class="n">batch</span><span class="p">),</span> <span class="n">batch</span><span class="p">)</span>
+
+    </div>
+<div class="viewcode-block" id="Master._process_result"><a class="viewcode-back" href="../../mod_modules.html#modules.get_nn.Master._process_result">[docs]</a>    <span class="k">def</span> <span class="nf">_process_result</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="n">flush</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Demo mode, save output as is.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">dist</span><span class="p">),</span> <span class="n">batch</span> <span class="o">=</span> <span class="n">result</span>
+        <span class="c"># save obtained neighbourhood parameters of each descriptor</span>
+        <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">batch</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">img_data</span><span class="p">[</span><span class="n">batch</span><span class="p">[</span><span class="n">b</span><span class="p">]]</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">idx</span><span class="p">[</span><span class="n">b</span><span class="p">,:],</span> <span class="n">dist</span><span class="p">[</span><span class="n">b</span><span class="p">,:]))</span>
+        
+        <span class="k">if</span> <span class="n">flush</span><span class="p">:</span>
+            <span class="n">cPickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">img_data</span><span class="p">,</span> <span class="nb">open</span><span class="p">(</span><span class="n">cf</span><span class="o">.</span><span class="n">_img_data</span><span class="p">,</span> <span class="s">&quot;wb&quot;</span><span class="p">),</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>     
+    
+    </div>
+<div class="viewcode-block" id="Master._process_result_hdf5"><a class="viewcode-back" href="../../mod_modules.html#modules.get_nn.Master._process_result_hdf5">[docs]</a>    <span class="k">def</span> <span class="nf">_process_result_hdf5</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="n">flush</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Batch mode, write output to HDF5 file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="p">(</span><span class="n">inds</span><span class="p">,</span> <span class="n">dist</span><span class="p">),</span> <span class="n">batch</span> <span class="o">=</span> <span class="n">result</span>
+        <span class="c"># updating regions records</span>
+        <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">batch</span><span class="p">)):</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">inds</span><span class="p">[</span><span class="n">b</span><span class="p">,:],</span> <span class="n">dist</span><span class="p">[</span><span class="n">b</span><span class="p">,:]))</span><span class="o">.</span><span class="n">T</span>
+            <span class="n">data</span><span class="o">.</span><span class="n">dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Regions</span><span class="o">.</span><span class="n">modify_column</span><span class="p">(</span><span class="n">batch</span><span class="p">[</span><span class="n">b</span><span class="p">],</span> <span class="n">batch</span><span class="p">[</span><span class="n">b</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span>
+                                       <span class="n">colname</span><span class="o">=</span><span class="s">&quot;neighbours&quot;</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
+        <span class="c"># saving if necessary</span>
+        <span class="k">if</span> <span class="n">flush</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Regions</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+    
+    </div>
+<div class="viewcode-block" id="Master.process_result"><a class="viewcode-back" href="../../mod_modules.html#modules.get_nn.Master.process_result">[docs]</a>    <span class="k">def</span> <span class="nf">process_result</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="n">flush</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Choose between batch and demo mode.        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">task_curr</span> <span class="o">-=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">cf</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s">&quot;hdf5&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_process_result_hdf5</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">flush</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_process_result</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">flush</span><span class="p">)</span>
+        
+        
+</div></div>
+<div class="viewcode-block" id="calc_nn"><a class="viewcode-back" href="../../mod_modules.html#modules.get_nn.calc_nn">[docs]</a><span class="k">def</span> <span class="nf">calc_nn</span><span class="p">(</span><span class="n">kill_workers</span><span class="p">):</span>
+    <span class="n">master</span> <span class="o">=</span> <span class="n">Master</span><span class="p">(</span><span class="n">kill_workers</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">master</span><span class="o">.</span><span class="n">tasks</span> <span class="o">==</span> <span class="p">[]:</span>
+        <span class="k">print</span> <span class="s">&quot;No neighbours to calculate&quot;</span>
+        <span class="c"># killing workers if needed</span>
+        <span class="k">if</span> <span class="n">kill_workers</span><span class="p">:</span>
+            <span class="n">master</span><span class="o">.</span><span class="n">terminate_workers</span><span class="p">()</span>
+        <span class="k">return</span>
+    <span class="k">if</span> <span class="n">cf</span><span class="o">.</span><span class="n">_show_progress</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s">&quot;Calculating nearest neighbours...&quot;</span>
+    <span class="n">master</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+    <span class="n">master</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+</pre></div></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">website-ibc 1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Anton Akusok.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

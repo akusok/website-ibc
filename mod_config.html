@@ -1,0 +1,255 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>config – Configuration files &mdash; website-ibc 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="author" title="About these documents" href="about.html" />
+    <link rel="top" title="website-ibc 1.0 documentation" href="index.html" />
+    <link rel="up" title="API" href="api.html" />
+    <link rel="next" title="elm – ELM implementation" href="elm.html" />
+    <link rel="prev" title="nn – Nearest Neighbour calculator" href="mod_nn.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="elm.html" title="elm – ELM implementation"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="mod_nn.html" title="nn – Nearest Neighbour calculator"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">website-ibc 1.0 documentation</a> &raquo;</li>
+          <li><a href="api.html" accesskey="U">API</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="config-configuration-files">
+<h1><tt class="xref py py-mod docutils literal"><span class="pre">config</span></tt> &#8211; Configuration files<a class="headerlink" href="#config-configuration-files" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-config.config_hdf5">
+<span id="config-hdf5"></span><h2>Config_hdf5<a class="headerlink" href="#module-config.config_hdf5" title="Permalink to this headline">¶</a></h2>
+<p>Setup file for the WIC project.</p>
+<p>DO NOT modify table descriptions unnecessarily! Changing them will require
+changing all filler files, and re-computing or re-structuring database files.
+Generally, additional fields in tables do not lead to noticable degradation
+in performance of increase of storage space.</p>
+<dl class="class">
+<dt id="config.config_hdf5.WebsitesRecord">
+<em class="property">class </em><tt class="descclassname">config.config_hdf5.</tt><tt class="descname">WebsitesRecord</tt><a class="reference internal" href="_modules/config/config_hdf5.html#WebsitesRecord"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#config.config_hdf5.WebsitesRecord" title="Permalink to this definition">¶</a></dt>
+<dd><p>Table type which describes websites.</p>
+<p>This and following table types are used to create database tables
+with &#8216;pyTables&#8217; (alias &#8216;tables&#8217;) library. pyTables provides a tabular
+extension to HDF5 storage mechanism, which normally uses array data.
+Tables allow storing and searching attributes in tables efficiently.
+Also, tables are useful for storing variable amounts of local features
+per image - using attributes as pointers to the image owning each feature,
+and utilizing extremely fast sequential I/O with a sorter table (compared
+to common relational databases).</p>
+<p>If needed, data from a table can be read directrly as a traditional array.
+Though table structure is fixed, their content depends on the exact method
+used, so several tables corresponding to particular method are stored
+together in a database file for convenience.</p>
+<div class="line-block">
+<div class="line">Attributes:</div>
+<div class="line-block">
+<div class="line"><strong>index</strong> &#8211; Unique index of a website.</div>
+<div class="line"><strong>classN</strong> &#8211; True class of a website.</div>
+<div class="line"><strong>img_count</strong> &#8211; Total number of images on that web page.</div>
+<div class="line"><strong>img_present</strong> &#8211; Number of database images in that website.</div>
+<div class="line"><strong>predict</strong> &#8211; Means and confidences for website classes predictions.</div>
+<div class="line"><strong>folder</strong> &#8211; Folder containing images from that website.</div>
+<div class="line"><strong>url</strong> &#8211; Web page of that website, if known.</div>
+<div class="line"><strong>class_text</strong> &#8211; Textual notation of the class</div>
+</div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="config.config_hdf5.ImagesRecord">
+<em class="property">class </em><tt class="descclassname">config.config_hdf5.</tt><tt class="descname">ImagesRecord</tt><a class="reference internal" href="_modules/config/config_hdf5.html#ImagesRecord"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#config.config_hdf5.ImagesRecord" title="Permalink to this definition">¶</a></dt>
+<dd><p>Table type which describes images.</p>
+<div class="line-block">
+<div class="line">Attributes:</div>
+<div class="line-block">
+<div class="line"><strong>index</strong> &#8211; Unique image index.</div>
+<div class="line"><strong>classN</strong> &#8211; True class of image&#8217;s website, true class for the image
+is unknown.</div>
+<div class="line"><strong>site_index</strong> &#8211; Index of website this image is taken from.</div>
+<div class="line"><strong>reg_first</strong> &#8211; Index of the first local image region in Regions table.</div>
+<div class="line"><strong>reg_count</strong> &#8211; Number of regions that image has.</div>
+<div class="line"><strong>nr_in_site</strong> &#8211; Number of image in website, can be used to restrict an
+amount of images processed from one website.</div>
+<div class="line"><strong>nr_in_class</strong> &#8211; Number of image in class, can be used to restrict an
+amount of images processed from each class.</div>
+<div class="line"><strong>predict</strong> &#8211;  Means and confidences for image classes predictions.</div>
+<div class="line"><strong>orig_sha1</strong> &#8211; Sha1 of an original image, used to find duplicates.</div>
+<div class="line"><strong>true_size</strong> &#8211; Dimensionality (x,y) of an original image.</div>
+<div class="line"><strong>new_size</strong> &#8211; Dimensionality (x,y) of a resized image.</div>
+<div class="line"><strong>true_name</strong> &#8211; File name of an original downloaded image.</div>
+<div class="line"><strong>file_name</strong> &#8211; File name of a preprocessed image.</div>
+</div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="config.config_hdf5.RegionsRecord">
+<em class="property">class </em><tt class="descclassname">config.config_hdf5.</tt><tt class="descname">RegionsRecord</tt><a class="reference internal" href="_modules/config/config_hdf5.html#RegionsRecord"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#config.config_hdf5.RegionsRecord" title="Permalink to this definition">¶</a></dt>
+<dd><p>Table type what describes image local samples.</p>
+<div class="line-block">
+<div class="line">Attributes:</div>
+<div class="line-block">
+<div class="line"><strong>index</strong> &#8211; Unique index of local sample. Samples from one image assume to
+have consecutive indices, so they can be red sequentially.</div>
+<div class="line"><strong>img_class</strong> &#8211; &#8220;Class&#8221; of image (class of website that image belongs to).
+Assumed to be the class of that local sample, although true
+dependence is very weak. Used for sample-based algorithms (finding
+best centroids for kNN, GRLVQ, etc.)</div>
+<div class="line"><strong>img_site</strong> &#8211; Website index of parental image. Allows website-based
+selection of samples.</div>
+<div class="line"><strong>img_index</strong> &#8211; Index of parental image. Allows image-based selection of
+samples, although use of Image&#8217;s &#8216;reg_first&#8217; and &#8216;reg_nr&#8217;
+attributes is faster if they are available.</div>
+<div class="line"><strong>pyramid</strong> &#8211; Used in spatial pyramid approach.</div>
+<div class="line"><strong>center</strong> &#8211; Center coordinates (x,y) of that local sample.</div>
+<div class="line"><strong>radius</strong> &#8211; Radius of that local sample. Knowing center and radius,
+it is possible to read pixel representation of sample from image.</div>
+<div class="line"><strong>cornerness</strong> &#8211; Some value returned by sample detection algorithm.
+May be useful, don&#8217;t take much space anyway.</div>
+<div class="line"><strong>predict</strong> &#8211;  Means and confidences for region classes predictions.
+Can also store nearest neighbour indices here.</div>
+</div>
+</div>
+<p>For practical purposes, all regions are detected and stored alongside images
+in a database. Descriptors of images are stored in a separate table, but 
+in cells with corresponding addresses (row indices).</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="config.config_hdf5.DColorSIFTRecord">
+<em class="property">class </em><tt class="descclassname">config.config_hdf5.</tt><tt class="descname">DColorSIFTRecord</tt><a class="reference internal" href="_modules/config/config_hdf5.html#DColorSIFTRecord"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#config.config_hdf5.DColorSIFTRecord" title="Permalink to this definition">¶</a></dt>
+<dd><p>Table type for storing local desriptors.</p>
+<div class="line-block">
+<div class="line">Attributes:</div>
+<div class="line-block">
+<div class="line"><strong>index</strong> &#8211; Same as index of the corresponding sample (region). Allows
+read descriptors in the same manner as local samples, or find
+information about descriptor in Regions table.</div>
+<div class="line"><strong>classN</strong> &#8211; Assumed true class of corresponding region. Stored here for
+faster access.</div>
+<div class="line"><strong>data</strong> &#8211; The descriptor itself. Current descriptor type is some color
+version of SIFT, with the dimensionality 3*128 = 384.</div>
+</div>
+</div>
+<p>Description table is put together with the corresponding Websites, Images
+and Regions table. Database file name should point to exact methods used,
+for instance &#8216;csift_ds.h5&#8217; for C-SIFT descriptors of dense sampled
+features.</p>
+<p>Compression x4 achieved using UInt8Col instead of IntCol. Further
+compression possible, but even the fastest one slows down I/O 10 times,
+because reads from here require index searching to get descriptors of
+a specific image, and searching a compressed data is bad idea.</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#"><tt class="docutils literal"><span class="pre">config</span></tt> &#8211; Configuration files</a><ul>
+<li><a class="reference internal" href="#module-config.config_hdf5">Config_hdf5</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="mod_nn.html"
+                        title="previous chapter"><tt class="docutils literal"><span class="pre">nn</span></tt> &#8211; Nearest Neighbour calculator</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="elm.html"
+                        title="next chapter"><tt class="docutils literal docutils literal"><span class="pre">elm</span></tt> &#8211; ELM implementation</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/mod_config.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="elm.html" title="elm – ELM implementation"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="mod_nn.html" title="nn – Nearest Neighbour calculator"
+             >previous</a> |</li>
+        <li><a href="index.html">website-ibc 1.0 documentation</a> &raquo;</li>
+          <li><a href="api.html" >API</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Anton Akusok.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

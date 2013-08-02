@@ -1,0 +1,228 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>modules.get_descriptors &mdash; website-ibc 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="author" title="About these documents" href="../../about.html" />
+    <link rel="top" title="website-ibc 1.0 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">website-ibc 1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for modules.get_descriptors</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;Processes an image and returns all data (properties + descriptors).</span>
+
+<span class="sd">If something goes wrong, returns string describing the error.</span>
+<span class="sd">@author: akusoka1</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">wibc_config</span> <span class="kn">import</span> <span class="n">IBCConfig</span> <span class="k">as</span> <span class="n">cf</span>
+<span class="kn">from</span> <span class="nn">mp.mp_master</span> <span class="kn">import</span> <span class="n">MPMaster</span>
+<span class="kn">from</span> <span class="nn">tables</span> <span class="kn">import</span> <span class="n">openFile</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">cPickle</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+
+<div class="viewcode-block" id="Master"><a class="viewcode-back" href="../../mod_modules.html#modules.get_descriptors.Master">[docs]</a><span class="k">class</span> <span class="nc">Master</span><span class="p">(</span><span class="n">MPMaster</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Implements &quot;get_new_task&quot; and &quot;process_result&quot; of Master class.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kill_workers</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Master</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">kill_workers</span><span class="p">,</span> <span class="n">profiling</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">tasks</span> <span class="o">=</span> <span class="p">[]</span>   
+        <span class="c"># preparing for job generation</span>
+        <span class="k">if</span> <span class="n">cf</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s">&quot;hdf5&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">hdf5</span> <span class="o">=</span> <span class="n">openFile</span><span class="p">(</span><span class="n">cf</span><span class="o">.</span><span class="n">_hdf5</span><span class="p">,</span> <span class="s">&quot;a&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Images</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hdf5</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">Images</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Regions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hdf5</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">Regions</span>        
+            <span class="bp">self</span><span class="o">.</span><span class="n">Descriptors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hdf5</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">Descriptors</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">reg_last</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Regions</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">last_index</span>        
+            <span class="bp">self</span><span class="o">.</span><span class="n">des_last</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Descriptors</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">last_index</span>
+            <span class="c"># gathering a list of tasks</span>
+            <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">Images</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="s">&quot;reg_count == -1&quot;</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">tasks</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">row</span><span class="p">[</span><span class="s">&quot;index&quot;</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s">&quot;file_name&quot;</span><span class="p">]))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">img_data</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">imglist</span> <span class="o">=</span> <span class="n">cPickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">cf</span><span class="o">.</span><span class="n">_img_data</span><span class="p">,</span> <span class="s">&quot;rb&quot;</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">imglist</span><span class="p">:</span>
+                <span class="c"># here using (&quot;url&quot;, &quot;filename&quot;) instead of &quot;index&quot; in hdf5,</span>
+                <span class="c"># because we need both filename and url later on</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">tasks</span><span class="o">.</span><span class="n">append</span><span class="p">(((</span><span class="n">item</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>       
+        
+        <span class="c"># initializing reporting part</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">task_max</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tasks</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">task_curr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">task_max</span>
+
+
+    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">cf</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s">&quot;hdf5&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">hdf5</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            
+        
+<div class="viewcode-block" id="Master.get_new_task"><a class="viewcode-back" href="../../mod_modules.html#modules.get_descriptors.Master.get_new_task">[docs]</a>    <span class="k">def</span> <span class="nf">get_new_task</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># just yielding tasks here</span>
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">img_file</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tasks</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="p">(</span><span class="s">&quot;csift&quot;</span><span class="p">,</span> <span class="n">img_file</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span>
+
+    </div>
+<div class="viewcode-block" id="Master._process_result"><a class="viewcode-back" href="../../mod_modules.html#modules.get_descriptors.Master._process_result">[docs]</a>    <span class="k">def</span> <span class="nf">_process_result</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="n">flush</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Demo mode, save output as is.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">data</span><span class="p">,</span> <span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span> <span class="o">=</span> <span class="n">result</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s">&quot;regions&quot;</span><span class="p">])):</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&quot;regions&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">r</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>  <span class="c"># hide url in parameters list</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&quot;descriptors&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">img_data</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">filename</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">d</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="n">flush</span><span class="p">:</span>
+            <span class="n">cPickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">img_data</span><span class="p">,</span> <span class="nb">open</span><span class="p">(</span><span class="n">cf</span><span class="o">.</span><span class="n">_img_data</span><span class="p">,</span> <span class="s">&quot;wb&quot;</span><span class="p">),</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>     
+    
+    </div>
+<div class="viewcode-block" id="Master._process_result_hdf5"><a class="viewcode-back" href="../../mod_modules.html#modules.get_descriptors.Master._process_result_hdf5">[docs]</a>    <span class="k">def</span> <span class="nf">_process_result_hdf5</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="n">flush</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Batch mode, write output to HDF5 file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">data</span><span class="p">,</span> <span class="n">idx</span> <span class="o">=</span> <span class="n">result</span>
+
+        <span class="c"># updating image record</span>
+        <span class="n">nregs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s">&quot;regions&quot;</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">irow</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">Images</span><span class="o">.</span><span class="n">iterrows</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">idx</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">irow</span><span class="p">[</span><span class="s">&quot;reg_count&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">nregs</span>        
+            <span class="k">if</span> <span class="n">nregs</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">irow</span><span class="p">[</span><span class="s">&quot;reg_first&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reg_last</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="n">irow</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+                                      
+        <span class="c"># writing regions and descriptors            </span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s">&quot;regions&quot;</span><span class="p">])):</span>
+            <span class="n">rrow</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Regions</span><span class="o">.</span><span class="n">row</span>
+            <span class="n">rrow</span><span class="p">[</span><span class="s">&quot;index&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reg_last</span> <span class="o">+</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="n">rrow</span><span class="p">[</span><span class="s">&quot;img_class&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">irow</span><span class="p">[</span><span class="s">&quot;classN&quot;</span><span class="p">]</span>
+            <span class="n">rrow</span><span class="p">[</span><span class="s">&quot;img_site&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">irow</span><span class="p">[</span><span class="s">&quot;site_index&quot;</span><span class="p">]</span>
+            <span class="n">rrow</span><span class="p">[</span><span class="s">&quot;img_index&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">idx</span>
+            <span class="n">rrow</span><span class="p">[</span><span class="s">&quot;center&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&quot;regions&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>            
+            <span class="n">rrow</span><span class="p">[</span><span class="s">&quot;radius&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&quot;regions&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>            
+            <span class="n">rrow</span><span class="p">[</span><span class="s">&quot;cornerness&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&quot;regions&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">][</span><span class="mi">3</span><span class="p">]</span>            
+            <span class="n">rrow</span><span class="o">.</span><span class="n">append</span><span class="p">()</span>
+            
+            <span class="n">drow</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Descriptors</span><span class="o">.</span><span class="n">row</span>
+            <span class="n">drow</span><span class="p">[</span><span class="s">&quot;index&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">des_last</span> <span class="o">+</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="n">drow</span><span class="p">[</span><span class="s">&quot;classN&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">irow</span><span class="p">[</span><span class="s">&quot;classN&quot;</span><span class="p">]</span>
+            <span class="n">drow</span><span class="p">[</span><span class="s">&quot;data&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&quot;descriptors&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">drow</span><span class="o">.</span><span class="n">append</span><span class="p">()</span>
+        
+        <span class="c"># updating parameters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reg_last</span> <span class="o">+=</span> <span class="n">nregs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">des_last</span> <span class="o">+=</span> <span class="n">nregs</span>
+        
+        <span class="c"># writing data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Regions</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">last_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reg_last</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Descriptors</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">last_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">des_last</span>
+        <span class="k">if</span> <span class="n">flush</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Images</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Regions</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Descriptors</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+    
+    </div>
+<div class="viewcode-block" id="Master.process_result"><a class="viewcode-back" href="../../mod_modules.html#modules.get_descriptors.Master.process_result">[docs]</a>    <span class="k">def</span> <span class="nf">process_result</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="n">flush</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Choose between batch and demo mode.        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">task_curr</span> <span class="o">-=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">cf</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s">&quot;hdf5&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_process_result_hdf5</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">flush</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_process_result</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">flush</span><span class="p">)</span>
+        
+        
+</div></div>
+<div class="viewcode-block" id="calc_descr"><a class="viewcode-back" href="../../mod_modules.html#modules.get_descriptors.calc_descr">[docs]</a><span class="k">def</span> <span class="nf">calc_descr</span><span class="p">(</span><span class="n">kill_workers</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">cf</span><span class="o">.</span><span class="n">_show_progress</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s">&quot;Extracting descriptors...&quot;</span>
+    <span class="n">master</span> <span class="o">=</span> <span class="n">Master</span><span class="p">(</span><span class="n">kill_workers</span><span class="p">)</span>
+    <span class="n">master</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+    <span class="n">master</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+</pre></div></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">website-ibc 1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Anton Akusok.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>
