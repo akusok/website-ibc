@@ -14,7 +14,7 @@ class IBCConfig(object):
 
     Import this with some simpler name, like "conf".
     """
-    _dir = "/data/caltech101/"
+    _dir = "/users/akusoka1/local/"
     _ibc = "/home/akusoka1/WIBC/src/"
     _maxc = 12  # maximum amount of different classes
     _raw_dir = _dir + "raw_img/"
@@ -22,7 +22,7 @@ class IBCConfig(object):
     
     # m02: choose either option, the other gets ""
     _mode = "hdf5"  # its either "hdf5" or something else
-    _hdf5 = _dir + "caltech101.h5"
+    _hdf5 = _dir + "spiiras_test_border.h5"
     _img_data = _dir + "imgdata.pkl"
     
     # m03: img_preprocessor
@@ -49,15 +49,15 @@ class IBCConfig(object):
     _nn_batch = 100
     
     # m08: elm_classifier
-    _train_size = 40
-    _val_size = 30
-    _test_size = 30
-    _neurons = 10
+    _train_size = 10000
+    _val_size = 10000
+    _test_size = 20000
+    _neurons = 50
     _elm_rep = 100  # ELM re-train repetitions for validation
     _elm_param = _dir + "ELM.pkl"
 
     # saving results
-    _f_out = _dir + "out.txt"
+    _f_out = _dir + "out_test_border.txt"
 
     # multiprocessing config
     _nr_wrk = 8  # a good guess is the number of cores - 1

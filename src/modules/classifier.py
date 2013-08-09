@@ -146,10 +146,14 @@ def run_elm(save_txt):
     print np.argmax(Yh, 1)
     # if true classes are known, show error
     if Y != []:
-        err = np.sum(np.argmax(Yh, 1) == np.argmax(Y,1))
-        err = float(err) / Y.shape[0]
-        print np.argmax(Y,1)
-        print "classification accuracy = %.03f" % err
+        for i in xrange(cf._maxc):
+            idx = np.argmax(Y,1) == i
+            if sum(idx) > 0:  # if there are samples of that class
+                Y1 = Y[idx,:]
+                Yh1 = Yh[idx,:]
+                err = np.sum(np.argmax(Yh1, 1) == np.argmax(Y1,1))
+                err = float(err) / Y1.shape[0]
+                print "classification accuracy: class %d = %.03f" % (i, err)
 
     # save results
     if save_txt:

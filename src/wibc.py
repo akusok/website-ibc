@@ -6,7 +6,7 @@ Created on Thu Jun 20 14:02:59 2013
 """
 
 from wibc_config import IBCConfig as cf
-from modules.hdf5_creator import init_hdf5
+from modules.hdf5_creator import init_hdf5, create_empty_hdf5
 from modules.img_preprocessor import normalize_images
 from modules.get_descriptors import calc_descr
 from modules.get_nn import calc_nn
@@ -19,8 +19,8 @@ import cProfile
 
 ##############################################################################
 print "IBC started"
-profiler = cProfile.Profile()
-profiler.enable()
+#profiler = cProfile.Profile()
+#profiler.enable()
 
 #mp_start()
 #init_hdf5()
@@ -29,9 +29,9 @@ profiler.enable()
 #mp_boost_nn()
 #calc_nn(kill_workers=True)
 #mp_finalize()
-#get_repr(all_repr=False)
-train_elm()
-run_elm(save_txt=False)
+#get_repr(all_repr=True)
+#train_elm()
+run_elm(save_txt=True)
 
 #profiler.disable()
 #profiler.dump_stats(cf._dir + "caltech101.prof")

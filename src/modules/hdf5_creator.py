@@ -10,26 +10,30 @@ from os.path import join
 import os
 
 
-def create_empty_hdf5():
+def create_empty_hdf5(fname=cf._hdf5):
     """Builds an empty HDF5 file having the given tables.
     """    
-    dnew = openFile(cf._hdf5, 'w')
+    dnew = openFile(fname, 'w')
 
-    WsNew = dnew.createTable(dnew.root, 'Websites', WebsitesRecord)
+    WsNew = dnew.createTable(dnew.root, 'Websites', WebsitesRecord,
+                             expectedrows=100000)
     WsNew.attrs.last_index = -1
     WsNew.cols.classN.createCSIndex()
 
-    ImNew = dnew.createTable(dnew.root, "Images", ImagesRecord)
+    ImNew = dnew.createTable(dnew.root, "Images", ImagesRecord,
+                             expectedrows=1000000)
     ImNew.attrs.last_index = -1
     ImNew.attrs.nr_in_class = np.zeros((cf._maxc,))
     ImNew.cols.site_index.createCSIndex()
     ImNew.cols.index.createCSIndex()        
     
-    RgNew = dnew.createTable(dnew.root, 'Regions', RegionsRecord)
+    RgNew = dnew.createTable(dnew.root, 'Regions', RegionsRecord,
+                             expectedrows=500000000)
     RgNew.attrs.last_index = -1
     RgNew.cols.img_index.createCSIndex()
         
-    DsNew = dnew.createTable(dnew.root, 'Descriptors', DColorSIFTRecord)
+    DsNew = dnew.createTable(dnew.root, 'Descriptors', DColorSIFTRecord,
+                             expectedrows=500000000)
     DsNew.attrs.last_index = -1
     DsNew.cols.index.createCSIndex()
     DsNew.cols.classN.createCSIndex()
@@ -68,8 +72,7 @@ def init_hdf5():
     Websites.flush()    
     db.close()
     
-    
-    
+
     
     
     
