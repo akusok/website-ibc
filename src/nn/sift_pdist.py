@@ -37,9 +37,10 @@ def get_dist_bln(P, Q, A, m, K):
     return (k_idx, k_dist)
 
 
-def get_dist(P, Q, A, m, K):
+def get_dist(P, Q, K, m=0.5):
     """Distance function using np.argsort.
     """
+    A = getA(P.shape[0])
     Z = (P+Q).dot(A)
     Z = Z**m
     Z[Z==0] = 1

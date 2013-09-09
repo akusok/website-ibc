@@ -5,8 +5,6 @@ All niuances are kept here, like 2 cores per process in SIFT stage
 and  1 core per process in NN stage.
 
 Created on Wed Jun 26 14:23:12 2013
-
-@author: akusoka1
 """
 
 from wibc_config import IBCConfig as cf

@@ -14,7 +14,7 @@ class IBCConfig(object):
 
     Import this with some simpler name, like "conf".
     """
-    _dir = "/data/r0/spiiras_train/"
+    _dir = "/data/spiiras_neigh_matrix/"
     _ibc = "/home/akusoka1/WIBC/src/"
     _maxc = 12  # maximum amount of different classes
     _raw_dir = _dir + "raw_img/"
@@ -22,7 +22,7 @@ class IBCConfig(object):
     
     # m02: choose either option, the other gets ""
     _mode = "hdf5"  # its either "hdf5" or something else
-    _hdf5 = _dir + "spiiras_train.h5"
+    _hdf5 = _dir + "spiiras_test_border.h5"
     _img_data = _dir + "imgdata.pkl"
     
     # m03: img_preprocessor
@@ -60,10 +60,10 @@ class IBCConfig(object):
     _f_out = _dir + "out_test_border.txt"
 
     # multiprocessing config
-    _nr_wrk = 10  # a good guess is the number of cores - 1
-    _qsize = 300  # maximum size of a queue, to limit memory consumption
+    _nr_wrk = 4  # a good guess is the number of cores - 1
+    _qsize = 100  # maximum size of a queue, to limit memory consumption
     _host = _dir + "hostname.txt"
-    _port = 50763
+    _port = 50758
     _key = "IBC"
     _show_progress = True
     

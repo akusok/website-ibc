@@ -60,7 +60,7 @@ class IBCConfig(object):
     _f_out = _dir + "out_test_border.txt"
 
     # multiprocessing config
-    _nr_wrk = 10  # a good guess is the number of cores - 1
+    _nr_wrk = 8  # a good guess is the number of cores - 1
     _qsize = 300  # maximum size of a queue, to limit memory consumption
     _host = _dir + "hostname.txt"
     _port = 50763

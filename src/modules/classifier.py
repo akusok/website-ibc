@@ -141,9 +141,12 @@ def run_elm(save_txt):
     xs = param["xs"]
     X = (X - np.tile(xm, (X.shape[0], 1))) / np.tile(xs, (X.shape[0], 1))
 
+    #cPickle.dump(X, open("x1.pkl","wb"), -1)
+
     # run elm
     Yh = elm.run(X)
-    print np.argmax(Yh, 1)
+    #cPickle.dump(Yh, open("yh.pkl","wb"), -1)
+    #print np.argmax(Yh, 1)
     # if true classes are known, show error
     if Y != []:
         for i in xrange(cf._maxc):

@@ -39,6 +39,11 @@ def create_empty_hdf5(fname=cf._hdf5):
     DsNew.cols.classN.createCSIndex()
     DsNew.autoIndex = True  
     
+    GistNew = dnew.createTable(dnew.root, 'GIST', DGISTRecord,
+                               expectedrows=1000000)
+    GistNew.cols.index.createCSIndex()
+    GistNew.cols.classN.createCSIndex()
+
     dnew.close()
     
     

@@ -8,7 +8,7 @@ in performance of increase of storage space.
 """
 
 from wibc_config import IBCConfig as cf
-from tables import Int64Col, Float64Col, UInt8Col, Int8Col,\
+from tables import Int64Col, Float64Col, Float32Col, UInt8Col, Int8Col,\
                    StringCol, IsDescription, openFile
 import numpy as np
 
@@ -152,7 +152,14 @@ class DColorSIFTRecord(IsDescription):
     data            = UInt8Col(shape=(384))
 
 
-
+class DGISTRecord(IsDescription):
+    """Table type for storing global GIST desriptors, 960-length.
+    
+    index = same as image_index
+    """
+    index           = Int64Col(dflt=-1, pos=0)
+    classN          = Int8Col(pos=1)
+    data            = Float32Col(shape=(960))
 
 
 

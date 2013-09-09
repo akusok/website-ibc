@@ -27,6 +27,7 @@ def mp_start():
     for i in xrange(cf._nr_wrk/2):
         wrk.append(MPWorker(i))
         wrk[-1].start()
+        time.sleep(0.1)
 
 def mp_boost_nn():
     """Add workers for NN here.
@@ -37,6 +38,7 @@ def mp_boost_nn():
     for i in xrange(cf._nr_wrk - cf._nr_wrk/2):  # rest of the workers
         wrk.append(MPWorker(i))
         wrk[-1].start()
+        time.sleep(0.1)
 
 def mp_finalize():
     """Terminating multiprocessing part.

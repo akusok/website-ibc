@@ -1,1 +1,1 @@
-/users/akusoka1/local/D2I/IBC/src/ibc_config.py
+/home/akusoka1/WIBC/src/wibc_config.py
