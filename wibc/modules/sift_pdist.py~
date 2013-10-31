@@ -1,0 +1,36 @@
+# -*- coding: utf-8 -*-
+"""Computes pairwise distances for SIFT histograms, pytohn implementation.
+"""
+
+import numpy as np
+
+
+def getA(N, THR=2):
+    """Get thresholded weighting matrix.
+    
+    Uses best settings from the article, THR=2.
+    """
+    A = np.zeros((N,N), dtype=np.float64);
+    for i in xrange(N):
+        for j in xrange(max(0, i-THR+1), min(N, i+THR)):
+            A[i,j] = 1 - float(abs(i-j))/THR
+    return A
+
+
+def sift_pdist(P, Q, K, m=0.5):
+    """Distance function using np.argsort.
+    """
+    A = getA(P.shape[0])
+    Z = (P+Q).dot(A)
+    Z = Z**m
+    Z[Z==0] = 1
+    D = (P-Q)/Z
+    # calc only diagonal of dot operation, for multiple vectors at a time
+    DA = D.dot(A)
+    dist = np.einsum('ij,ji->i', DA, D.T)**0.5
+    # getting the closest K members
+    k_idx = np.argsort(dist)[:K]
+    k_dist = dist[k_idx]
+    return (k_idx, k_dist, (np.mean(dist), np.std(dist)))
+
+
